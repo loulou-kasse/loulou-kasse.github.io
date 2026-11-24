@@ -277,3 +277,83 @@ table.euer tr.warnr td { color: var(--warn); }
 .num, .tile b, .amt, .big { font-variant-numeric: lining-nums tabular-nums; font-feature-settings: "lnum" 1, "tnum" 1; }
 .tile.hi b, .theme-boutique .tile b, .theme-boutique .amt, .theme-boutique .row.strong .num { font-family: var(--body); }
 .theme-boutique .tile b, .theme-boutique .amt { font-weight: 400; }
+
+/* ================= «Объёмный»: мягкий рельеф (neumorphism), светло-серый фон, градиент роза → орхидея → барвинок ================= */
+.theme-neo { --paper: #e9e9ef; --card: #e9e9ef; --ink: #2a2834; --muted: #8b8999; --line: #d9d9e2; --accent: #8e5fd6; --gold: #b9a3e6; --r: 22px;
+  --grad: linear-gradient(135deg, #e46fb5 0%, #a46be0 52%, #6f86f0 100%);
+  --hi: -7px -7px 16px rgba(255, 255, 255, .95), 7px 7px 18px rgba(163, 163, 184, .45);
+  --hi-sm: -4px -4px 10px rgba(255, 255, 255, .95), 4px 4px 11px rgba(163, 163, 184, .45);
+  --in: inset 4px 4px 9px rgba(163, 163, 184, .45), inset -4px -4px 9px rgba(255, 255, 255, .9);
+  --ok: #3f8f74; --ok-bg: #dcefe7; --warn: #b9772a; --warn-bg: #f4e6d3; --stop: #cf4f6e; --stop-bg: #f6dde4; }
+.theme-neo body, body.theme-neo { background: var(--paper); }
+.theme-neo .top { background: var(--paper); border-bottom: 0; box-shadow: none; padding-top: 12px; }
+.theme-neo .top img { mix-blend-mode: multiply; }
+.theme-neo h2 { font: 700 24px/1.15 var(--body); text-transform: uppercase; letter-spacing: .06em; }
+.theme-neo h3 { font: 600 12px/1.2 var(--body); text-transform: uppercase; letter-spacing: .16em; color: var(--ink); }
+.theme-neo .card, .theme-neo .choice, .theme-neo .gate, .theme-neo .tile, .theme-neo .qbtn { background: var(--card); border: 0; box-shadow: var(--hi); border-radius: var(--r); }
+.theme-neo .choice { border-left: 0; }
+.theme-neo .card .tiles .tile { background: var(--card); box-shadow: var(--hi-sm); border-radius: 16px; }
+.theme-neo .card .tiles .tile.hi { background: var(--grad); color: #fff; }
+.theme-neo .card .tiles .tile.hi span { color: rgba(255, 255, 255, .85); }
+.theme-neo .tile span { letter-spacing: .14em; font-weight: 600; font-size: 10px; }
+/* быстрые кнопки: круглые рельефные значки, «Фото чека» — градиентная сфера */
+.theme-neo .quick { gap: 6px; }
+.theme-neo .qbtn { background: none; box-shadow: none; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink); gap: 8px; padding: 4px 0; }
+.theme-neo .qbtn svg { width: 58px; height: 58px; padding: 16px; border-radius: 50%; background: var(--card); box-shadow: var(--hi); stroke: var(--ink); }
+.theme-neo .qbtn.cam { background: none; color: var(--ink); }
+.theme-neo .qbtn.cam svg { background: var(--grad); stroke: #fff; box-shadow: var(--hi), inset 0 0 0 3px rgba(255, 255, 255, .55); }
+.theme-neo .qbtn:active svg { box-shadow: var(--in); }
+/* кнопки */
+.theme-neo .btn { border: 0; border-radius: 999px; background: var(--card); color: var(--ink); box-shadow: var(--hi-sm); font-weight: 600; letter-spacing: .06em; }
+.theme-neo .btn:active { box-shadow: var(--in); }
+.theme-neo .btn.pri { background: var(--grad); color: #fff; box-shadow: var(--hi-sm); }
+.theme-neo .btn.ghost { box-shadow: none; background: transparent; }
+.theme-neo .btn.danger { color: var(--stop); }
+.theme-neo .btn.pri.danger { background: var(--stop); color: #fff; }
+.theme-neo .btn[disabled] { opacity: .45; }
+/* поля ввода «вдавлены» */
+.theme-neo label.f input, .theme-neo label.f select, .theme-neo label.f textarea, .theme-neo .lineitem input, .theme-neo .lineitem textarea, .theme-neo select.tpl { background: var(--paper); border: 0; box-shadow: var(--in); border-radius: 14px; }
+.theme-neo label.f { color: var(--muted); font-weight: 500; }
+/* списки: каждая строка — рельефная «таблетка» */
+.theme-neo .card .list { gap: 12px; padding: 4px 2px; }
+.theme-neo .card .list .item { border: 0; background: var(--card); box-shadow: var(--hi-sm); border-radius: 18px; padding: 12px 14px; }
+.theme-neo .card .list .item.tap:active { box-shadow: var(--in); background: var(--card); }
+.theme-neo .card .list .item.void { opacity: .6; }
+.theme-neo .card .list .mh { margin: 8px 4px 0 !important; }
+.theme-neo .att .dot { width: 34px; height: 34px; border-radius: 50%; background: var(--card); box-shadow: var(--hi-sm); position: relative; }
+.theme-neo .att .dot::after { content: ''; position: absolute; inset: 11px; border-radius: 50%; background: #e3a35a; }
+.theme-neo .att .att-stop .dot::after { background: #cf4f6e; } .theme-neo .att .att-info .dot::after { background: var(--grad); }
+.theme-neo .way { border: 0; border-radius: 999px; background: var(--card); box-shadow: var(--hi-sm); color: var(--accent); }
+/* переключатели и фильтры */
+.theme-neo .seg { border: 0; border-radius: 999px; background: var(--paper); box-shadow: var(--in); padding: 4px; gap: 4px; }
+.theme-neo .seg button { border: 0; border-radius: 999px; font-weight: 600; letter-spacing: .04em; }
+.theme-neo .seg button[aria-selected="true"], .theme-neo .seg button[aria-pressed="true"] { background: var(--grad); color: #fff; box-shadow: var(--hi-sm); }
+.theme-neo .seg.chips { box-shadow: none; padding: 0; gap: 10px; }
+.theme-neo .seg.chips button { border: 0; background: var(--card); box-shadow: var(--hi-sm); color: var(--ink); }
+.theme-neo .seg.chips button[aria-pressed="true"] { background: var(--grad); color: #fff; }
+/* отметки, шкалы, сообщения */
+.theme-neo .pill { border-radius: 999px; padding: 1px 9px; }
+.theme-neo .meter { height: 10px; border-radius: 999px; background: var(--paper); box-shadow: var(--in); }
+.theme-neo .meter i { background: var(--grad); border-radius: 999px; }
+.theme-neo .meter.stop i { background: var(--stop); }
+.theme-neo .verdict, .theme-neo .banner { border-left: 0; border-radius: 16px; box-shadow: var(--hi-sm); }
+.theme-neo .copy { border: 0; box-shadow: var(--in); border-radius: 16px; }
+.theme-neo .row.strong { border-top: 0; }
+.theme-neo .amt, .theme-neo .num { font-weight: 600; }
+.theme-neo .tile b { font-weight: 600; }
+/* нижняя панель: плавающая, активный раздел — градиентный круг */
+.theme-neo nav.tabs { background: transparent; border-top: 0; bottom: 10px; padding: 0 10px; pointer-events: none; }
+.theme-neo nav.tabs div { background: var(--card); border-radius: 26px; box-shadow: var(--hi); pointer-events: auto; padding: 6px 4px; }
+.theme-neo nav.tabs a { border-top: 0; margin-top: 0; font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); gap: 4px; }
+.theme-neo nav.tabs svg { width: 42px; height: 42px; padding: 9px; border-radius: 50%; box-shadow: var(--hi-sm); }
+.theme-neo nav.tabs a[aria-current="page"] svg { background: var(--grad); stroke: #fff; box-shadow: var(--hi-sm), inset 0 0 0 3px rgba(255, 255, 255, .5); }
+.theme-neo main { padding-bottom: 120px; }
+.theme-neo .toast { border-radius: 999px; }
+/* окна */
+.theme-neo .sheet, .theme-neo .sheet-bar { background: var(--paper); border-bottom: 0; }
+.theme-neo .sheet-x { border: 0; background: var(--card); box-shadow: var(--hi-sm); }
+.theme-neo .paperwrap { border: 0; border-radius: 16px; box-shadow: var(--in); background: #dcdce4; }
+.theme-neo details.card > summary::after { color: var(--accent); }
+.theme-neo .tile b { font-size: 16px; white-space: nowrap; }
+.theme-neo .tile.hi b, .theme-neo .tiles.t5 .tile.hi b { font: 700 18px/1.25 var(--body); white-space: nowrap; letter-spacing: -.01em; }
+.theme-neo .total, .theme-neo .big { font-family: var(--body); font-weight: 700; }

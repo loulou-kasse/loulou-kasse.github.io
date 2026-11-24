@@ -71,8 +71,8 @@
   }
 
   /* ---------- оформление (запоминается на устройстве) ---------- */
-  var THEMES = [['paper', 'Мягкий'], ['floral', 'Цветочный'], ['boutique', 'Бутик'], ['classic', 'Строгий']];
-  function theme() { try { return localStorage.getItem('kasse-theme') || 'floral'; } catch (e) { return 'floral'; } }
+  var THEMES = [['neo', 'Объёмный'], ['floral', 'Цветочный'], ['paper', 'Мягкий'], ['boutique', 'Бутик'], ['classic', 'Строгий']];
+  function theme() { try { return localStorage.getItem('kasse-theme') || 'neo'; } catch (e) { return 'neo'; } }
   function applyTheme() { var t = theme(); document.body.className = document.body.className.replace(/\btheme-\w+/g, '').trim() + ' theme-' + t; }
   function setTheme(t) { try { localStorage.setItem('kasse-theme', t); } catch (e) {} applyTheme(); }
 
@@ -100,11 +100,6 @@
     sprig: '<svg class="sprig" viewBox="0 0 120 40" aria-hidden="true"><path d="M4 34 C30 30 60 22 116 6"/><path d="M28 29c-2-8 4-14 10-15-1 7-4 12-10 15z"/><path d="M52 23c-1-8 5-13 11-13-1 7-5 11-11 13z"/><path d="M76 16c0-7 6-12 12-11-2 7-6 10-12 11z"/><path d="M40 26c6 3 13 2 17-3-7-2-13-1-17 3z"/><path d="M66 19c6 2 12 1 16-4-6-2-12-1-16 4z"/><circle cx="104" cy="9" r="3"/><circle cx="111" cy="13" r="2"/></svg>'
   };
   function missingBeleg() { var st = C.stornoedIds(S.entries); return S.entries.filter(function (e) { return C.needsBeleg(e, st); }); }
-  function greeting() {
-    var h = new Date().getHours(), w = h < 5 ? 'Доброй ночи' : h < 12 ? 'Доброе утро' : h < 18 ? 'Добрый день' : 'Добрый вечер';
-    var n = S.user && S.user.displayName ? String(S.user.displayName).split(/\s+/)[0] : '';
-    return w + (n ? ', ' + n : '');
-  }
   /* что требует внимания: каждая строка ведёт к действию */
   function attention() {
     var t = today(), ym = t.slice(0, 7), pm = C.prevMonth(ym), out = [];
@@ -128,8 +123,7 @@
   function vHome() {
     var t = today(), s = S.settings, open = C.openInvoices(S.invoices).sort(function (a, b) { return (a.due || '9') < (b.due || '9') ? -1 : 1; });
     var openSum = open.reduce(function (a, v) { return a + v.total; }, 0), d = new Date(), sm = C.sums(S.entries, t.slice(0, 7));
-    var h = '<div class="hello"><b>' + esc(greeting()) + '</b><span>' + d.getDate() + ' ' + MES_GEN[d.getMonth()] + ' ' + d.getFullYear() + '</span>' + QI.sprig + '</div>';
-    h += '<div class="quick"><button class="qbtn cam" data-act="j-new" data-type="ausgabe" data-photo="1">' + QI.cam + 'Фото чека</button><button class="qbtn" data-act="j-new" data-type="ausgabe">' + QI.minus + 'Расход</button><button class="qbtn" data-act="j-new" data-type="einnahme">' + QI.plus + 'Поступление</button><button class="qbtn" data-act="iv-new">' + QI.inv + 'Счёт</button></div>';
+    var h = '<div class="quick"><button class="qbtn cam" data-act="j-new" data-type="ausgabe" data-photo="1">' + QI.cam + 'Фото чека</button><button class="qbtn" data-act="j-new" data-type="ausgabe">' + QI.minus + 'Расход</button><button class="qbtn" data-act="j-new" data-type="einnahme">' + QI.plus + 'Поступление</button><button class="qbtn" data-act="iv-new">' + QI.inv + 'Счёт</button></div>';
     var att = attention();
     h += '<div class="card att"><h3>Требует внимания</h3>' + (att.length ? '<div class="list">' + att.map(function (a) {
       return '<button class="item tap att-' + a[0] + '" data-act="' + a[1] + '" ' + a[2] + '><i class="dot"></i><span class="main"><b>' + esc(a[3]) + '</b><span class="meta">' + esc(a[4]) + '</span></span><span class="chev">›</span></button>';
