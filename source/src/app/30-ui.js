@@ -130,19 +130,23 @@
     { a: 90, act: 'data-act="iv-new"', label: 'Счёт', icon: 'inv' },
     { a: 180, act: 'data-act="j-new" data-type="einnahme"', label: 'Выручка', icon: 'plus' }
   ];
+  var AR = 148, AH = 30;   /* радиус средней линии дуг и половина их угла */
   function arcPath(a) {
-    var r = 140, h = 23, p = function (d) { var t = d * Math.PI / 180; return (180 + r * Math.cos(t)).toFixed(1) + ' ' + (180 + r * Math.sin(t)).toFixed(1); };
-    return 'M' + p(a - h) + ' A' + r + ' ' + r + ' 0 0 1 ' + p(a + h);
+    var p = function (d) { var t = d * Math.PI / 180; return (180 + AR * Math.cos(t)).toFixed(1) + ' ' + (180 + AR * Math.sin(t)).toFixed(1); };
+    return 'M' + p(a - AH) + ' A' + AR + ' ' + AR + ' 0 0 1 ' + p(a + AH);
   }
   function hero() {
     var segs = ARC.map(function (x) {
-      var t = x.a * Math.PI / 180, cx = 180 + 140 * Math.cos(t), cy = 180 + 140 * Math.sin(t) - 8;
-      var ic = QI[x.icon].replace('<svg viewBox="0 0 24 24">', '<svg x="' + (cx - 12).toFixed(1) + '" y="' + (cy - 12).toFixed(1) + '" width="24" height="24" viewBox="0 0 24 24" class="ic">');
+      var t = x.a * Math.PI / 180, cx = 180 + AR * Math.cos(t), cy = 180 + AR * Math.sin(t), L = x.label.toUpperCase(), ix, iy, tx, ty, anc;
+      if (x.a === -90 || x.a === 90) {          /* сверху и снизу: значок и подпись в строку */
+        var w = 18 + 6 + L.length * 6.3, x0 = cx - w / 2; ix = x0; iy = cy - 9; tx = x0 + 24; ty = cy + 3.5; anc = 'start';
+      } else { ix = cx - 9; iy = cy - 17; tx = cx; ty = cy + 14; anc = 'middle'; }   /* слева и справа: значок над подписью */
+      var ic = QI[x.icon].replace('<svg viewBox="0 0 24 24">', '<svg x="' + ix.toFixed(1) + '" y="' + iy.toFixed(1) + '" width="18" height="18" viewBox="0 0 24 24" class="ic">');
       return '<g class="seg' + (x.cls ? ' ' + x.cls : '') + '" ' + x.act + ' role="button" tabindex="0" aria-label="' + x.label + '"><path class="arc" d="' + arcPath(x.a) + '"/>' + ic +
-        '<text x="' + cx.toFixed(1) + '" y="' + (cy + 27).toFixed(1) + '" text-anchor="middle">' + x.label.toUpperCase() + '</text></g>';
+        '<text x="' + tx.toFixed(1) + '" y="' + ty.toFixed(1) + '" text-anchor="' + anc + '">' + L + '</text></g>';
     }).join('');
-    return '<div class="hero"><svg class="arcs" viewBox="0 0 360 360"><defs><linearGradient id="lgrad" gradientUnits="userSpaceOnUse" x1="110" y1="0" x2="250" y2="80">' +
-      '<stop offset="0" stop-color="#1f0a08"/><stop offset=".3" stop-color="#4a2222"/><stop offset=".48" stop-color="#7a4b45"/><stop offset=".6" stop-color="#c69b7f"/><stop offset=".66" stop-color="#ead2ab"/><stop offset=".73" stop-color="#a87a68"/><stop offset=".88" stop-color="#5d3736"/><stop offset="1" stop-color="#24100d"/></linearGradient></defs>' + segs + '</svg>' +
+    return '<div class="hero"><svg class="arcs" viewBox="0 0 360 360"><defs><linearGradient id="lgrad" gradientUnits="userSpaceOnUse" x1="100" y1="0" x2="260" y2="60">' +
+      '<stop offset="0" stop-color="#1f0a08"/><stop offset=".3" stop-color="#4a2222"/><stop offset=".5" stop-color="#7a4b45"/><stop offset=".64" stop-color="#c69b7f"/><stop offset=".7" stop-color="#ead2ab"/><stop offset=".77" stop-color="#a87a68"/><stop offset=".9" stop-color="#5d3736"/><stop offset="1" stop-color="#24100d"/></linearGradient></defs>' + segs + '</svg>' +
       '<div class="medal" aria-hidden="true"><div class="ring"><img src="' + LOGO_ROUND + '" alt=""></div></div></div>';
   }
   function vHome() {

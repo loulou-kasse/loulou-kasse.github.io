@@ -397,23 +397,24 @@ button.item:active { transform: scale(.985); }
 :root { --grad: linear-gradient(125deg, #1f0a08 0%, #4a2222 26%, #7a4b45 42%, #c69b7f 53%, #ead2ab 58%, #a87a68 64%, #5d3736 80%, #24100d 100%);
   --hi: 0 4px 14px rgba(90, 60, 50, .14); --hi-sm: 0 2px 8px rgba(90, 60, 50, .12); --in: inset 0 2px 6px rgba(90, 60, 50, .18); }
 .hero { position: relative; width: 100%; max-width: 380px; aspect-ratio: 1 / 1; margin: 0 auto; }
-.hero .medal { position: absolute; left: 50%; top: 50%; width: 53%; pointer-events: none; aspect-ratio: 1 / 1; transform: translate(-50%, -50%); border-radius: 50%;
-  background: var(--card); box-shadow: var(--hi), 0 10px 30px rgba(60, 25, 20, .18); padding: 5%; }
-.hero .ring { width: 100%; height: 100%; border-radius: 50%; padding: 4%; background: conic-gradient(from 210deg, #24100d, #5d3736, #c69b7f, #ead2ab, #a87a68, #4a2222, #24100d, #7a4b45, #ead2ab, #5d3736, #24100d);
+.hero .medal { position: absolute; left: 50%; top: 50%; width: 62%; pointer-events: none; aspect-ratio: 1 / 1; transform: translate(-50%, -50%); border-radius: 50%;
+  background: var(--card); box-shadow: var(--hi-sm), 0 6px 16px rgba(60, 25, 20, .14); padding: 4%; }
+.hero .ring { width: 100%; height: 100%; border-radius: 50%; padding: 3%; background: conic-gradient(from 210deg, #24100d, #5d3736, #c69b7f, #ead2ab, #a87a68, #4a2222, #24100d, #7a4b45, #ead2ab, #5d3736, #24100d);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .35); position: relative; }
 .hero .ring img { width: 100%; height: 100%; border-radius: 50%; display: block; object-fit: cover; background: #fff; box-shadow: inset 0 3px 8px rgba(0, 0, 0, .25); }
-.hero .ring::after { content: ''; position: absolute; inset: 4%; border-radius: 50%; pointer-events: none;
+.hero .ring::after { content: ''; position: absolute; inset: 3%; border-radius: 50%; pointer-events: none;
   background: radial-gradient(circle at 32% 24%, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 42%), radial-gradient(circle at 70% 85%, rgba(60, 25, 20, .12), rgba(60, 25, 20, 0) 50%); }
 .hero .arcs { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .hero .seg { cursor: pointer; outline: none; transform-box: view-box; transform-origin: 180px 180px; transition: transform .09s ease, filter .14s ease; }
-.hero .seg .arc { fill: none; stroke: var(--card); stroke-width: 64; stroke-linecap: round; }
-.hero .seg { filter: drop-shadow(-4px -4px 6px rgba(255, 255, 255, .95)) drop-shadow(5px 6px 8px rgba(150, 140, 160, .45)); }
+.hero .seg .arc { fill: none; stroke: var(--card); stroke-width: 44; stroke-linecap: round; }
+.hero .seg { filter: drop-shadow(0 1px 1px rgba(255, 255, 255, .9)) drop-shadow(0 2px 5px rgba(140, 125, 135, .22)); }
 .hero .seg .ic { fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.hero .seg text { font: 600 9.5px var(--body); letter-spacing: .08em; fill: var(--ink); }
+.hero .seg text { font: 600 8.5px var(--body); letter-spacing: .05em; fill: var(--ink); }
 .hero .seg.cam .arc { stroke: url(#lgrad); }
 .hero .seg.cam .ic { stroke: #fff8ef; } .hero .seg.cam text { fill: #fff8ef; }
-.hero .seg:active { transform: scale(.97); filter: drop-shadow(1px 2px 3px rgba(150, 140, 160, .4)); }
-.hero .seg:focus-visible .arc { stroke-width: 66; }
+.hero .seg:active { transform: scale(.97); filter: none; }
+.hero .seg:active .arc { stroke: #dedde6; } .hero .seg.cam:active .arc { stroke: url(#lgrad); }
+.hero .seg:focus-visible .arc { stroke-width: 46; }
 .theme-classic .hero .seg, .theme-boutique .hero .seg { filter: drop-shadow(0 2px 4px rgba(90, 60, 50, .18)); }
 body[data-view="home"] .top a img { visibility: hidden; }
 
@@ -1383,19 +1384,23 @@ body[data-view="home"] .top a img { visibility: hidden; }
     { a: 90, act: 'data-act="iv-new"', label: 'Счёт', icon: 'inv' },
     { a: 180, act: 'data-act="j-new" data-type="einnahme"', label: 'Выручка', icon: 'plus' }
   ];
+  var AR = 148, AH = 30;   /* радиус средней линии дуг и половина их угла */
   function arcPath(a) {
-    var r = 140, h = 23, p = function (d) { var t = d * Math.PI / 180; return (180 + r * Math.cos(t)).toFixed(1) + ' ' + (180 + r * Math.sin(t)).toFixed(1); };
-    return 'M' + p(a - h) + ' A' + r + ' ' + r + ' 0 0 1 ' + p(a + h);
+    var p = function (d) { var t = d * Math.PI / 180; return (180 + AR * Math.cos(t)).toFixed(1) + ' ' + (180 + AR * Math.sin(t)).toFixed(1); };
+    return 'M' + p(a - AH) + ' A' + AR + ' ' + AR + ' 0 0 1 ' + p(a + AH);
   }
   function hero() {
     var segs = ARC.map(function (x) {
-      var t = x.a * Math.PI / 180, cx = 180 + 140 * Math.cos(t), cy = 180 + 140 * Math.sin(t) - 8;
-      var ic = QI[x.icon].replace('<svg viewBox="0 0 24 24">', '<svg x="' + (cx - 12).toFixed(1) + '" y="' + (cy - 12).toFixed(1) + '" width="24" height="24" viewBox="0 0 24 24" class="ic">');
+      var t = x.a * Math.PI / 180, cx = 180 + AR * Math.cos(t), cy = 180 + AR * Math.sin(t), L = x.label.toUpperCase(), ix, iy, tx, ty, anc;
+      if (x.a === -90 || x.a === 90) {          /* сверху и снизу: значок и подпись в строку */
+        var w = 18 + 6 + L.length * 6.3, x0 = cx - w / 2; ix = x0; iy = cy - 9; tx = x0 + 24; ty = cy + 3.5; anc = 'start';
+      } else { ix = cx - 9; iy = cy - 17; tx = cx; ty = cy + 14; anc = 'middle'; }   /* слева и справа: значок над подписью */
+      var ic = QI[x.icon].replace('<svg viewBox="0 0 24 24">', '<svg x="' + ix.toFixed(1) + '" y="' + iy.toFixed(1) + '" width="18" height="18" viewBox="0 0 24 24" class="ic">');
       return '<g class="seg' + (x.cls ? ' ' + x.cls : '') + '" ' + x.act + ' role="button" tabindex="0" aria-label="' + x.label + '"><path class="arc" d="' + arcPath(x.a) + '"/>' + ic +
-        '<text x="' + cx.toFixed(1) + '" y="' + (cy + 27).toFixed(1) + '" text-anchor="middle">' + x.label.toUpperCase() + '</text></g>';
+        '<text x="' + tx.toFixed(1) + '" y="' + ty.toFixed(1) + '" text-anchor="' + anc + '">' + L + '</text></g>';
     }).join('');
-    return '<div class="hero"><svg class="arcs" viewBox="0 0 360 360"><defs><linearGradient id="lgrad" gradientUnits="userSpaceOnUse" x1="110" y1="0" x2="250" y2="80">' +
-      '<stop offset="0" stop-color="#1f0a08"/><stop offset=".3" stop-color="#4a2222"/><stop offset=".48" stop-color="#7a4b45"/><stop offset=".6" stop-color="#c69b7f"/><stop offset=".66" stop-color="#ead2ab"/><stop offset=".73" stop-color="#a87a68"/><stop offset=".88" stop-color="#5d3736"/><stop offset="1" stop-color="#24100d"/></linearGradient></defs>' + segs + '</svg>' +
+    return '<div class="hero"><svg class="arcs" viewBox="0 0 360 360"><defs><linearGradient id="lgrad" gradientUnits="userSpaceOnUse" x1="100" y1="0" x2="260" y2="60">' +
+      '<stop offset="0" stop-color="#1f0a08"/><stop offset=".3" stop-color="#4a2222"/><stop offset=".5" stop-color="#7a4b45"/><stop offset=".64" stop-color="#c69b7f"/><stop offset=".7" stop-color="#ead2ab"/><stop offset=".77" stop-color="#a87a68"/><stop offset=".9" stop-color="#5d3736"/><stop offset="1" stop-color="#24100d"/></linearGradient></defs>' + segs + '</svg>' +
       '<div class="medal" aria-hidden="true"><div class="ring"><img src="' + LOGO_ROUND + '" alt=""></div></div></div>';
   }
   function vHome() {
