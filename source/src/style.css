@@ -164,7 +164,24 @@ label.chk input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(
 .grow { flex: 1 1 auto !important; }
 .row.wrap .btn { flex: 1 1 auto; }
 .row.strong { font-weight: 600; font-size: 17px; border-top: 1px solid var(--accent); padding-top: 8px; }
-.hello { font: 500 15px/1.2 var(--body); color: var(--muted); margin: 0 2px; }
+.hello { position: relative; margin: 2px 2px 0; display: flex; flex-direction: column; gap: 2px; }
+.hello b { font: 600 26px/1.15 var(--display); color: var(--ink); }
+.hello span { font-size: 14px; color: var(--muted); }
+.sprig { display: none; fill: none; stroke: var(--sage, #93a98f); stroke-width: 1.4; stroke-linecap: round; }
+.sprig circle { fill: var(--rose, #e3bfb3); stroke: none; }
+.hello .sprig { position: absolute; right: 0; top: -2px; width: 120px; height: 40px; }
+.allok { display: flex; align-items: center; gap: 10px; margin: 0; color: var(--ok); }
+.allok .sprig { width: 60px; height: 20px; flex: 0 0 auto; }
+.qbtn svg { width: 26px; height: 26px; fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.qbtn.cam { background: var(--accent); color: #fff; border-color: var(--accent); }
+.qbtn.cam svg { stroke: #fff; }
+.att .item { align-items: center; }
+.att .dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; background: var(--warn); }
+.att .att-stop .dot { background: var(--stop); } .att .att-info .dot { background: var(--gold); }
+.chev { color: var(--muted); font-size: 22px; line-height: 1; }
+.lim { margin: 0; }
+.tiles.t3 { grid-template-columns: repeat(3, 1fr); }
+.card .tiles .tile { border: 0; background: var(--paper); }
 .quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .qbtn { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 4px; font-size: 13px; color: var(--ink); display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .qbtn b { font: 400 24px/1 var(--display); color: var(--accent); }
@@ -218,3 +235,45 @@ table.euer tr.warnr td { color: var(--warn); }
 
 .sheet h2.plain { text-transform: none; letter-spacing: 0; font: 600 22px/1.25 var(--body); }
 .toast .lnk { color: #fff; }
+
+/* ================= оформления ================= */
+/* «Мягкий» и «Цветочный»: кремовый фон, скруглённые карточки с тенью, таблетки-кнопки */
+.theme-paper, .theme-floral { --paper: #f8f1ec; --card: #fffdfb; --line: #eee2da; --r: 14px; --accent: #7a5446; --gold: #d8b9a4; --rose: #e8c3b6; --sage: #93a98f; }
+.theme-paper .top, .theme-floral .top { background: var(--card); border-bottom: 0; box-shadow: 0 2px 10px rgba(110, 70, 55, .07); }
+.theme-paper .card, .theme-floral .card, .theme-paper .choice, .theme-floral .choice, .theme-paper .gate, .theme-floral .gate { border: 0; box-shadow: 0 1px 2px rgba(110, 70, 55, .05), 0 6px 18px rgba(110, 70, 55, .07); }
+.theme-paper .choice, .theme-floral .choice { border-left: 0; }
+.theme-paper h2, .theme-floral h2, .theme-boutique h2 { text-transform: none; letter-spacing: 0; font-weight: 600; font-size: 30px; }
+.theme-paper h3, .theme-floral h3 { text-transform: none; letter-spacing: .01em; font: 600 15px/1.25 var(--body); color: var(--accent); }
+.theme-paper .btn, .theme-floral .btn { border-radius: 999px; }
+.theme-paper input, .theme-floral input, .theme-paper select, .theme-floral select, .theme-paper textarea, .theme-floral textarea { border-radius: 12px; }
+.theme-paper .pill, .theme-floral .pill { border-radius: 999px; padding: 1px 9px; }
+.theme-paper .verdict, .theme-floral .verdict { border-left: 0; border-radius: 12px; }
+.theme-paper .qbtn, .theme-floral .qbtn { border: 0; border-radius: 18px; box-shadow: 0 1px 2px rgba(110, 70, 55, .05), 0 6px 18px rgba(110, 70, 55, .07); }
+.theme-paper .tile span, .theme-floral .tile span { text-transform: none; letter-spacing: .02em; font-size: 12px; }
+.theme-paper .card .tiles .tile:nth-child(1), .theme-floral .card .tiles .tile:nth-child(1) { background: #f4ebe3; }
+.theme-paper .card .tiles .tile:nth-child(2), .theme-floral .card .tiles .tile:nth-child(2) { background: #f7e9e4; }
+.theme-paper .card .tiles .tile.hi, .theme-floral .card .tiles .tile.hi { background: #f1dfd6; }
+.theme-paper .meter, .theme-floral .meter { border-radius: 999px; height: 8px; }
+.theme-paper .meter i, .theme-floral .meter i { border-radius: 999px; }
+.theme-paper nav.tabs, .theme-floral nav.tabs { background: var(--card); border-top: 0; box-shadow: 0 -2px 12px rgba(110, 70, 55, .07); }
+.theme-paper nav.tabs a[aria-current], .theme-floral nav.tabs a[aria-current] { border-top-color: transparent; }
+.theme-paper nav.tabs a[aria-current] svg, .theme-floral nav.tabs a[aria-current] svg { background: #f1dfd6; border-radius: 999px; padding: 2px 14px; width: 54px; }
+.theme-paper .sheet, .theme-floral .sheet { background: var(--paper); }
+.theme-paper .seg, .theme-floral .seg { border-radius: 999px; }
+/* «Цветочный»: веточки и розовые акценты */
+.theme-floral .sprig { display: block; }
+.theme-floral .att .dot { background: #e0a46b; } .theme-floral .att .att-stop .dot { background: #c9665c; } .theme-floral .att .att-info .dot { background: var(--sage); }
+.theme-floral .pill.ok { background: #e6efe2; color: #4f6e4a; }
+/* «Бутик»: белый лист, много воздуха, золотистые линии, суммы шрифтом логотипа */
+.theme-boutique { --paper: #ffffff; --line: #eadfd6; --gold: #c9a98c; --r: 0; }
+.theme-boutique .card { border: 0; border-top: 1px solid var(--gold); padding: 18px 2px; }
+.theme-boutique .choice { border: 0; border-top: 1px solid var(--line); padding-left: 2px; }
+.theme-boutique h3 { color: var(--gold); }
+.theme-boutique .tile, .theme-boutique .qbtn { border-color: var(--line); }
+.theme-boutique .tile b, .theme-boutique .amt, .theme-boutique .row.strong .num { font-family: var(--display); font-size: 21px; font-weight: 600; }
+.theme-boutique .hello b { font-size: 34px; font-weight: 500; }
+.theme-boutique .qbtn.cam { background: var(--ink); border-color: var(--ink); }
+/* цифры всегда «прописные» и одной ширины: у шрифта логотипа по умолчанию старинные цифры разной высоты */
+.num, .tile b, .amt, .big { font-variant-numeric: lining-nums tabular-nums; font-feature-settings: "lnum" 1, "tnum" 1; }
+.tile.hi b, .theme-boutique .tile b, .theme-boutique .amt, .theme-boutique .row.strong .num { font-family: var(--body); }
+.theme-boutique .tile b, .theme-boutique .amt { font-weight: 400; }

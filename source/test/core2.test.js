@@ -102,3 +102,21 @@ eq(m2.matched[0].entry.id, 'b');
 eq(C.matchBank([{ date: '2026-11-10', amount: -500 }, { date: '2026-11-10', amount: -500 }], [{ id: 'a', type: 'ausgabe', way: 'G', amount: 500, date: '2026-11-10' }]).missing.length, 1);
 ok(C.invoicesCsv(IV, 2026).includes('202611003;Rechnung;24.11.2026;;Stiftung PCM;150,00;offen'));
 console.log('OK: ' + n + ' проверок (новые функции ядра)');
+// --- темп прибыли ---
+{
+  const es = [{ id: 'a', type: 'einnahme', way: 'G', amount: 53000, date: '2026-10-16' }, { id: 'b', type: 'ausgabe', way: 'G', amount: 4000, date: '2026-10-27' }, { id: 'c', type: 'einnahme', way: 'G', amount: 30000, date: '2026-11-11' }];
+  let r = C.profitPace(es, '2026-11-24', '2026-09-17');
+  eq([r.from, r.months, r.month, r.total, r.avg], ['2026-09', 3, 30000, 79000, 26333]);
+  r = C.profitPace(es, '2026-11-24', '');
+  eq([r.from, r.months, r.avg], ['2026-10', 2, 39500]);
+  r = C.profitPace(es, '2027-02-10', '2026-09-17');
+  eq([r.from, r.months, r.total], ['2027-01', 2, 0]);
+  eq(C.prevMonth('2027-01'), '2026-12'); eq(C.prevMonth('2026-11'), '2026-10');
+  // инвариант на случайных журналах: total = сумма прибыли за год, если начало — январь
+  for (let t = 0; t < 200; t++) {
+    const xs = []; for (let i = 0; i < 30; i++) xs.push({ id: 'x' + i, type: ['einnahme', 'ausgabe'][i % 2], way: 'G', amount: 100 + i * 37 + t, date: '2026-' + ('0' + (1 + (i * 7 + t) % 11)).slice(-2) + '-05' });
+    xs.push({ id: 'j', type: 'ausgabe', way: 'G', amount: 1, date: '2026-01-02' });
+    const q = C.profitPace(xs, '2026-11-30', ''); eq(q.total, C.sums(xs, '2026').gewinn); eq(q.months, 11);
+  }
+  console.log('OK: темп прибыли');
+}

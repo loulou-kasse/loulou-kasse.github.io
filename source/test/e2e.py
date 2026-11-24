@@ -13,7 +13,7 @@ async def main():
         await pg.goto(URL); await pg.wait_for_timeout(400)
         check('вход: экран входа, вкладки скрыты', 'Войти через Google' in await txt(pg) and await pg.is_hidden('nav.tabs'))
         await pg.click('[data-act=login]'); await pg.wait_for_timeout(500)
-        check('вход: главная после входа', 'Ждём оплату' in await txt(pg) and await pg.is_visible('nav.tabs'))
+        check('вход: главная после входа', 'Требует внимания' in await txt(pg) and await pg.is_visible('nav.tabs'))
         check('пустая база: подсказка о переносе', 'Перенос из старой версии' in await txt(pg))
         # --- восстановление из копии старой версии ---
         await pg.goto(URL + '#more'); await pg.wait_for_timeout(200)
@@ -25,8 +25,8 @@ async def main():
         # --- главная ---
         await pg.goto(URL + '#home'); await pg.wait_for_timeout(300)
         t = await txt(pg)
-        check('главная: ждём оплату 240,00 € по 2 счетам', '240,00 €' in t and '2 счёта' in t, t[:400])
-        check('главная: без чека 2 расхода', 'Без чека2' in t, t[:500])
+        check('главная: ожидаем оплату 240,00 €, оба счёта в списке', 'Ожидаем оплату240,00 €' in t and 'Stiftung PCM202611003' in t and 'Kristina Nilmaier202611002' in t, t[:600])
+        check('главная: внимание — 2 расхода без чека, 4 записи без статьи', '2 расхода без чека' in t and '4 записи без статьи' in t, t[:700])
         # --- счета: список ---
         await pg.goto(URL + '#invoices'); await pg.wait_for_timeout(300)
         t = await txt(pg)
@@ -97,7 +97,7 @@ async def main():
         await pg.evaluate("(()=>{var d=JSON.parse(localStorage.getItem('__fbmock'));d['invoices/202611003'].due='2026-11-01';localStorage.setItem('__fbmock',JSON.stringify(d));})()")
         await pg.goto(URL + '#home'); await pg.reload(); await pg.wait_for_timeout(500)
         t = await txt(pg)
-        check('главная: просроченный счёт показан', 'просрочено 1' in t and 'Просроченные счета' in t, t[:600])
+        check('главная: просроченный счёт показан', 'Просрочен счёт 202611003 · Stiftung PCM' in t and 'просрочен с 01.11.2026' in t, t[:900])
         await pg.click('[data-act=iv-open][data-no="202611003"]'); await pg.click('[data-act=iv-remind]')
         await pg.click('[data-act=rm-pdf]'); s = await saved(pg, 3)
         check('напоминание: PDF Zahlungserinnerung', s[-1]['name'].startswith('Zahlungserinnerung_202611003'))

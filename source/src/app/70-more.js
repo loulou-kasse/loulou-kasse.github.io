@@ -21,6 +21,7 @@
     h += '<h2>Данные</h2><div class="choices">' +
       '<button class="choice" data-act="set-open"><span><b>Настройки</b><span class="sub">реквизиты, нумерация, остаток, лимиты, папки Drive</span></span></button>' +
       '<button class="choice" data-act="bk-open"><span><b>Резервная копия</b><span class="sub">' + (s.lastBackup ? 'последняя копия в Drive: ' + esc(C.deDate(s.lastBackup.slice(0, 10))) : 'файл со всеми данными; копия в Drive') + '</span></span></button></div>';
+    var th = theme(); h += '<h3>Оформление</h3><div class="seg chips">' + THEMES.map(function (x) { return '<button data-act="theme" data-t="' + x[0] + '" aria-pressed="' + (th === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div><p class="hint">Запоминается на этом устройстве.</p>';
     if (S.user) h += '<p class="hint">Вход: ' + esc(S.user.email || '') + ' · Google Drive ' + (B.driveReady() ? 'подключён' : 'не подключён') + ' <button class="lnk" data-act="logout">Выйти</button></p>';
     return h;
   }

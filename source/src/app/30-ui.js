@@ -70,6 +70,12 @@
     m.innerHTML = ({ home: vHome, guide: vGuide, invoices: vInvoices, journal: vJournal, more: vMore })[view]();
   }
 
+  /* ---------- оформление (запоминается на устройстве) ---------- */
+  var THEMES = [['paper', 'Мягкий'], ['floral', 'Цветочный'], ['boutique', 'Бутик'], ['classic', 'Строгий']];
+  function theme() { try { return localStorage.getItem('kasse-theme') || 'floral'; } catch (e) { return 'floral'; } }
+  function applyTheme() { var t = theme(); document.body.className = document.body.className.replace(/\btheme-\w+/g, '').trim() + ' theme-' + t; }
+  function setTheme(t) { try { localStorage.setItem('kasse-theme', t); } catch (e) {} applyTheme(); }
+
   /* ---------- вход ---------- */
   function vLogin() {
     return '<div class="gate"><h2>Вход</h2><p>Данные LOU LOU Kasse доступны только владельцам. Войдите своим Google-аккаунтом.</p>' +
@@ -86,29 +92,63 @@
     var p = lim > 0 ? v / lim : 0, cls = p > 1 ? 'stop' : p >= 0.8 ? 'warn' : '';
     return { html: '<div class="meter ' + cls + '"><i style="width:' + Math.max(0, Math.min(100, Math.round(p * 100))) + '%"></i></div>', cls: cls || 'ok' };
   }
-  function limitCards() {
-    var s = S.settings, ym = today().slice(0, 7), yr = ym.slice(0, 4);
-    var gew = C.sums(S.entries, ym).gewinn, ums = C.sums(S.entries, yr).einnahme;
-    var kv = s.kvLimit || 0, ku = s.kuLimit || 0, m1 = meter(gew, kv), m2 = meter(ums, ku);
-    var word = { ok: 'в норме', warn: 'близко к пределу', stop: 'предел превышен' };
-    return '<div class="card"><div class="row"><h3>Прибыль за ' + MES[parseInt(ym.slice(5), 10) - 1] + '</h3><span class="pill ' + m1.cls + ' right">' + (kv ? word[m1.cls] : 'лимит не задан') + '</span></div><p><b class="num">' + eur(gew) + '</b> из ' + eur(kv) + ' — предел семейной страховки</p>' + m1.html +
-      '<div class="row" style="margin-top:14px"><h3>Оборот за ' + yr + ' год</h3><span class="pill ' + m2.cls + ' right">' + (ku ? word[m2.cls] : 'лимит не задан') + '</span></div><p><b class="num">' + eur(ums) + '</b> из ' + eur(ku) + ' — порог Kleinunternehmer</p>' + m2.html + '</div>';
-  }
+  var QI = {
+    minus: '<svg viewBox="0 0 24 24"><path d="M5 12h14"/><circle cx="12" cy="12" r="9.5"/></svg>',
+    plus: '<svg viewBox="0 0 24 24"><path d="M12 7v10M7 12h10"/><circle cx="12" cy="12" r="9.5"/></svg>',
+    inv: '<svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z M14 3v5h5 M9 13h7 M9 17h5"/></svg>',
+    cam: '<svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.6"/></svg>',
+    sprig: '<svg class="sprig" viewBox="0 0 120 40" aria-hidden="true"><path d="M4 34 C30 30 60 22 116 6"/><path d="M28 29c-2-8 4-14 10-15-1 7-4 12-10 15z"/><path d="M52 23c-1-8 5-13 11-13-1 7-5 11-11 13z"/><path d="M76 16c0-7 6-12 12-11-2 7-6 10-12 11z"/><path d="M40 26c6 3 13 2 17-3-7-2-13-1-17 3z"/><path d="M66 19c6 2 12 1 16-4-6-2-12-1-16 4z"/><circle cx="104" cy="9" r="3"/><circle cx="111" cy="13" r="2"/></svg>'
+  };
   function missingBeleg() { var st = C.stornoedIds(S.entries); return S.entries.filter(function (e) { return C.needsBeleg(e, st); }); }
+  function greeting() {
+    var h = new Date().getHours(), w = h < 5 ? 'Доброй ночи' : h < 12 ? 'Доброе утро' : h < 18 ? 'Добрый день' : 'Добрый вечер';
+    var n = S.user && S.user.displayName ? String(S.user.displayName).split(/\s+/)[0] : '';
+    return w + (n ? ', ' + n : '');
+  }
+  /* что требует внимания: каждая строка ведёт к действию */
+  function attention() {
+    var t = today(), ym = t.slice(0, 7), pm = C.prevMonth(ym), out = [];
+    var od = C.openInvoices(S.invoices).filter(function (v) { return C.isOverdue(v, t); });
+    if (od.length) out.push(['stop', 'iv-open', 'data-no="' + esc(od[0].no) + '"', od.length === 1 ? 'Просрочен счёт ' + od[0].no + ' · ' + ivName(od[0]) : 'Просрочено счетов: ' + od.length, 'напомнить об оплате']);
+    var mb = missingBeleg().length;
+    if (mb) out.push(['warn', 'go-nobeleg', '', mb + ' ' + plural(mb, 'расход', 'расхода', 'расходов') + ' без чека', 'добавить фото или Eigenbeleg']);
+    var st = C.stornoedIds(S.entries), nc = S.entries.filter(function (e) { return C.validEntry(e) && (e.type === 'einnahme' || e.type === 'ausgabe') && !e.stornoOf && !st[e.id] && !C.catOf(e); }).length;
+    if (nc) out.push(['warn', 'go-nocat', '', nc + ' ' + plural(nc, 'запись', 'записи', 'записей') + ' без статьи', 'нужно для отчёта EÜR']);
+    var startM = (S.settings.openingDate || '').slice(0, 7), hasG = S.entries.some(function (e) { return C.validEntry(e) && e.way === 'G' && e.date.slice(0, 7) <= pm; });
+    if (hasG && (!startM || pm >= startM)) {
+      var stmt = S.bank.statements[pm], rec = C.reconcile(S.entries, S.settings.opening || 0, S.settings.openingDate || '', pm, stmt == null ? null : stmt);
+      if (rec.ok !== true) out.push([rec.ok === false ? 'stop' : 'warn', 'go-rec', 'data-m="' + pm + '"', rec.ok === false ? 'Расхождение с банком за ' + MES[parseInt(pm.slice(5), 10) - 1] : 'Не сверена выписка за ' + MES[parseInt(pm.slice(5), 10) - 1], rec.ok === false ? 'разница ' + eur(rec.diff) : 'внести остаток из выписки']);
+    }
+    var au = C.openAuslagen(S.entries);
+    if (au.length) out.push(['warn', 'go-more', '', 'Не возмещено супругу: ' + eur(au.reduce(function (a, e) { return a + e.amount; }, 0)), au.length + ' ' + plural(au.length, 'расход', 'расхода', 'расходов') + ', перевод с рабочего счёта']);
+    var lb = S.settings.lastBackup;
+    if ((S.entries.length || S.invoices.length) && (!lb || C.daysBetween(lb.slice(0, 10), t) > 30)) out.push(['info', 'bk-open', '', lb ? 'Резервной копии больше месяца' : 'Резервная копия ещё не делалась', 'сохранить в Google Drive']);
+    return out;
+  }
   function vHome() {
-    var t = today(), open = C.openInvoices(S.invoices), od = open.filter(function (v) { return C.isOverdue(v, t); });
-    var openSum = open.reduce(function (a, v) { return a + v.total; }, 0), mb = missingBeleg();
-    var sm = C.sums(S.entries, t.slice(0, 7)), d = new Date();
-    var h = '<div class="hello"><span>' + d.getDate() + ' ' + MES_GEN[d.getMonth()] + ' ' + d.getFullYear() + '</span></div>';
-    h += '<div class="quick"><button class="qbtn" data-act="j-new" data-type="ausgabe"><b>+</b>Расход</button><button class="qbtn" data-act="j-new" data-type="einnahme"><b>+</b>Поступление</button><button class="qbtn" data-act="iv-new"><b>+</b>Счёт</button><button class="qbtn" data-act="j-new" data-type="ausgabe" data-photo="1"><b>◉</b>Фото чека</button></div>';
-    h += '<div class="tiles"><button class="tile lnkt" data-act="go-iv-open"><span>Ждём оплату</span><b>' + eur(openSum) + '</b><em>' + open.length + ' ' + plural(open.length, 'счёт', 'счёта', 'счетов') + (od.length ? ', <i class="red">просрочено ' + od.length + '</i>' : '') + '</em></button>' +
-      '<div class="tile hi"><span>Прибыль, ' + MES[d.getMonth()] + '</span><b>' + eur(sm.gewinn) + '</b><em>выручка ' + eur(sm.einnahme) + '</em></div>' +
-      '<button class="tile lnkt' + (mb.length ? ' warnt' : '') + '" data-act="go-nobeleg"><span>Без чека</span><b>' + mb.length + '</b><em>' + (mb.length ? 'расходы без документа' : 'все документы на месте') + '</em></button></div>';
-    if (od.length) h += '<div class="card"><h3>Просроченные счета</h3><div class="list">' + od.map(ivRow).join('') + '</div></div>';
-    h += limitCards();
+    var t = today(), s = S.settings, open = C.openInvoices(S.invoices).sort(function (a, b) { return (a.due || '9') < (b.due || '9') ? -1 : 1; });
+    var openSum = open.reduce(function (a, v) { return a + v.total; }, 0), d = new Date(), sm = C.sums(S.entries, t.slice(0, 7));
+    var h = '<div class="hello"><b>' + esc(greeting()) + '</b><span>' + d.getDate() + ' ' + MES_GEN[d.getMonth()] + ' ' + d.getFullYear() + '</span>' + QI.sprig + '</div>';
+    h += '<div class="quick"><button class="qbtn cam" data-act="j-new" data-type="ausgabe" data-photo="1">' + QI.cam + 'Фото чека</button><button class="qbtn" data-act="j-new" data-type="ausgabe">' + QI.minus + 'Расход</button><button class="qbtn" data-act="j-new" data-type="einnahme">' + QI.plus + 'Поступление</button><button class="qbtn" data-act="iv-new">' + QI.inv + 'Счёт</button></div>';
+    var att = attention();
+    h += '<div class="card att"><h3>Требует внимания</h3>' + (att.length ? '<div class="list">' + att.map(function (a) {
+      return '<button class="item tap att-' + a[0] + '" data-act="' + a[1] + '" ' + a[2] + '><i class="dot"></i><span class="main"><b>' + esc(a[3]) + '</b><span class="meta">' + esc(a[4]) + '</span></span><span class="chev">›</span></button>';
+    }).join('') + '</div>' : '<p class="allok">' + QI.sprig + 'Всё в порядке: документы на месте, счета в срок.</p>') + '</div>';
+    /* ожидаемые поступления */
+    h += '<div class="card"><div class="row"><h3>Ожидаем оплату</h3><b class="right num">' + eur(openSum) + '</b></div>' + (open.length ? '<div class="list">' + open.map(function (v) {
+      var od = C.isOverdue(v, t);
+      return '<button class="item tap" data-act="iv-open" data-no="' + esc(v.no) + '"><span class="main"><b>' + esc(ivName(v)) + '</b><span class="meta">' + esc(v.no) + ' · ' + (v.due ? (od ? '<i class="red">просрочен с ' + esc(C.deDate(v.due)) + '</i>' : 'до ' + esc(C.deDate(v.due))) : 'без срока') + '</span></span><span class="amt num">' + eur(v.total) + '</span></button>';
+    }).join('') + '</div>' : '<p class="hint">Все выставленные счета оплачены.</p>') + '</div>';
+    /* месяц и пределы */
+    var kv = s.kvLimit || 0, ku = s.kuLimit || 0, pace = C.profitPace(S.entries, t, s.openingDate || ''), yr = t.slice(0, 4), ums = C.sums(S.entries, yr).einnahme;
+    var rest = kv - pace.month, restAvg = kv - pace.avg, m1 = meter(pace.month, kv), m2 = meter(ums, ku);
+    h += '<div class="card"><div class="tiles t3"><div class="tile"><span>Выручка</span><b>' + eur(sm.einnahme) + '</b></div><div class="tile"><span>Расходы</span><b>' + eur(sm.ausgabe) + '</b></div><div class="tile hi"><span>Прибыль</span><b>' + eur(sm.gewinn) + '</b></div></div><p class="hint">' + MES[d.getMonth()] + ' ' + d.getFullYear() + '</p>' +
+      '<h3>Семейная страховка</h3>' + (kv ? '<p class="lim">' + (rest >= 0 ? 'В этом месяце можно ещё <b class="num">' + eur(rest) + '</b> прибыли' : 'В этом месяце предел превышен на <b class="num red">' + eur(-rest) + '</b>') + '</p>' + m1.html +
+      '<p class="hint">В среднем с ' + MES_GEN[parseInt(pace.from.slice(5), 10) - 1].replace(/я$/, 'я') + ': <b class="num">' + eur(pace.avg) + '</b> в месяц' + (restAvg >= 0 ? ', запас ' + eur(restAvg) : ', <i class="red">выше предела ' + eur(kv) + '</i>') + '. Касса обычно смотрит на среднюю прибыль за год.</p>' : '<p class="hint">Предел не задан: «Ещё» → «Настройки».</p>') +
+      '<h3>Kleinunternehmer · оборот ' + yr + '</h3>' + (ku ? '<p class="lim">Оборот <b class="num">' + eur(ums) + '</b>, до порога ещё <b class="num">' + eur(Math.max(0, ku - ums)) + '</b></p>' + m2.html : '<p class="hint">Порог не задан.</p>') + '</div>';
     h += '<div class="choices"><a class="choice" href="#guide"><span><b>Справочник</b><span class="sub">как оплатить, принять оплату, перевести между счетами</span></span></a></div>';
     if (!reqOk()) h += '<div class="banner">Для выставления счетов заполните реквизиты: «Ещё» → «Настройки».</div>';
-    if (!S.entries.length && !S.invoices.length && S.mode === 'sync') h += '<div class="card"><h3>Перенос из старой версии</h3><p class="hint">В старой версии (в Claude) откройте «Прочее» → «Резервная копия» и сохраните файл. Затем здесь: «Ещё» → «Восстановить из копии».</p></div>';
+    if (!S.entries.length && !S.invoices.length && S.mode === 'sync') h += '<div class="card"><h3>Перенос из старой версии</h3><p class="hint">«Ещё» → «Резервная копия» → «Восстановление» и выберите файл переноса.</p></div>';
     return h;
   }
   function plural(n, a, b, c) { var m10 = n % 10, m100 = n % 100; return m10 === 1 && m100 !== 11 ? a : m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14) ? b : c; }

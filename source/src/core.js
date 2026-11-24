@@ -400,6 +400,27 @@
     return '﻿' + rows.map(function (x) { return x.map(csvCell).join(';'); }).join('\r\n') + '\r\n';
   }
 
+
+  /* прибыль для предела семейной страховки: текущий месяц и среднее за месяц с начала года
+     (или с первого месяца деятельности в этом году). Инвариант: avg * months = сумма прибыли этих месяцев. */
+  function profitPace(entries, todayIso, startIso) {
+    var ym = todayIso.slice(0, 7), y = ym.slice(0, 4), from = y + '-01';
+    var first = null;
+    (entries || []).forEach(function (e) { if (validEntry(e) && e.date.slice(0, 4) === y && (!first || e.date < first)) first = e.date; });
+    var cands = [first, startIso && startIso.slice(0, 4) === y ? startIso : null].filter(Boolean).sort();
+    if (cands.length) from = cands[0].slice(0, 7);
+    if (from > ym) from = ym;
+    var months = (parseInt(ym.slice(0, 4), 10) - parseInt(from.slice(0, 4), 10)) * 12 + parseInt(ym.slice(5), 10) - parseInt(from.slice(5), 10) + 1;
+    var total = 0, m = from;
+    for (var i = 0; i < months; i++) {
+      total += sums(entries, m).gewinn;
+      var yy = parseInt(m.slice(0, 4), 10), mm = parseInt(m.slice(5), 10) + 1; if (mm > 12) { mm = 1; yy++; }
+      m = yy + '-' + ('0' + mm).slice(-2);
+    }
+    return { month: sums(entries, ym).gewinn, from: from, months: months, total: total, avg: Math.round(total / months), ok: total === sums(entries, y).gewinn || from > y + '-01' };
+  }
+  function prevMonth(ym) { var y = parseInt(ym.slice(0, 4), 10), m = parseInt(ym.slice(5), 10) - 1; if (m === 0) { m = 12; y--; } return y + '-' + ('0' + m).slice(-2); }
+
   root.Core = {
     parseMoney: parseMoney, fmtMoney: fmtMoney, parseQty: parseQty, fmtQty: fmtQty,
     lineTotal: lineTotal, invoiceTotal: invoiceTotal, schlussTotals: schlussTotals, addDays: addDays, nextInvoiceNo: nextInvoiceNo,
@@ -408,6 +429,6 @@
     openAuslagen: openAuslagen, journalCsv: journalCsv, fillTpl: fillTpl, tplFields: tplFields,
     deDate: deDate, nonLatin1: nonLatin1, CATS: CATS, CAT_INFO: CAT_INFO, catOf: catOf, euerReport: euerReport, euerCsv: euerCsv,
     needsBeleg: needsBeleg, isOverdue: isOverdue, daysBetween: daysBetween, openInvoices: openInvoices, clientsFrom: clientsFrom,
-    invoiceWarnings: invoiceWarnings, parseCsv: parseCsv, deDateToIso: deDateToIso, parseBankCsv: parseBankCsv, matchBank: matchBank, invoicesCsv: invoicesCsv, TYPE_DE: TYPE_DE, WAY_DE: WAY_DE, TYPES: TYPES, WAYS: WAYS
+    invoiceWarnings: invoiceWarnings, parseCsv: parseCsv, deDateToIso: deDateToIso, parseBankCsv: parseBankCsv, matchBank: matchBank, invoicesCsv: invoicesCsv, profitPace: profitPace, prevMonth: prevMonth, TYPE_DE: TYPE_DE, WAY_DE: WAY_DE, TYPES: TYPES, WAYS: WAYS
   };
 })(typeof window !== 'undefined' ? window : globalThis);

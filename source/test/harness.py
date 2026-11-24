@@ -42,11 +42,14 @@ async def page(p, w=412, h=915, clear=True):
     await pg.route('**/vendor/firebase-app-compat.js', lambda r: r.fulfill(body=MOCK, content_type='application/javascript'))
     await pg.route(re.compile(r'.*/vendor/firebase-(auth|firestore)-compat\.js'), lambda r: r.fulfill(body='', content_type='application/javascript'))
     await pg.route(re.compile(r'https://www\.googleapis\.com/.*'), drive.handle)
-    await pg.route(re.compile(r'https://fonts\.(googleapis|gstatic)\.com/.*'), lambda r: r.fulfill(body='', content_type='text/css'))
+    await pg.route(re.compile(r'https://fonts\.googleapis\.com/.*'), lambda r: r.fulfill(body=FONTCSS, content_type='text/css'))
+    await pg.route(re.compile(r'https://localfont/.*'), lambda r: r.fulfill(path=os.path.join(ROOT, 'node_modules/@fontsource', r.request.url.split('localfont/')[1]), content_type='font/woff2'))
     await pg.add_init_script(SAVE_STUB)
     if clear: await pg.add_init_script("if(!sessionStorage.__init){localStorage.clear();sessionStorage.__init=1}")
     return b, pg, errs, drive
 URL = 'http://127.0.0.1:%d/' % PORT
+FONTCSS = ''.join("@font-face{font-family:'%s';font-weight:%s;src:url(https://localfont/%s/files/%s-%s-%s-normal.woff2)}" % (fam, w, fam.lower(), fam.lower(), sub, w)
+  for fam, ws in (('Jost', (400, 500, 600)), ('Cormorant', (500, 600))) for w in ws for sub in ('latin', 'cyrillic'))
 async def saved(pg, n=1, t=3000):
     for _ in range(t // 100):
         s = await pg.evaluate('window.__saved')

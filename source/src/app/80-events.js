@@ -13,6 +13,9 @@
     else if (a === 'g-journal') { o = GUIDE[g.sit].opts[g.opt]; sheetEntry({ type: o.journal.type, way: o.journal.way, text: o.journal.type === 'ausgabe' ? '' : C.fillTpl(o.texts[0][1], guideVals()).replace(/…/g, '').trim() }); }
     else if (a === 'sheet-close') closeSheet();
     else if (a === 'go-iv-open') { ivf = 'open'; location.hash = '#invoices'; }
+    else if (a === 'go-rec') { month = b.dataset.m; jf = { q: '', kind: 'all' }; if (view === 'journal') drawMain(); else location.hash = '#journal'; }
+    else if (a === 'go-more') location.hash = '#more';
+    else if (a === 'theme') { setTheme(b.dataset.t); drawMain(); }
     else if (a === 'go-nobeleg') { jf = { q: '', kind: 'nobeleg' }; month = 'all'; closeSheet(); if (view === 'journal') drawMain(); else location.hash = '#journal'; }
     else if (a === 'go-nocat') { jf = { q: '', kind: 'nocat' }; month = 'all'; closeSheet(); if (view === 'journal') drawMain(); else location.hash = '#journal'; }
     /* счета */
@@ -125,5 +128,6 @@
   document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && sheetOpen()) closeSheet(); });
   window.addEventListener('hashchange', route);
   if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(function () {});
+  applyTheme();
   boot();
 })();
