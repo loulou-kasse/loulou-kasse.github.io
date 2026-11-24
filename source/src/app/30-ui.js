@@ -52,6 +52,7 @@
     drawMain();
   }
   function draw() {
+    document.body.setAttribute('data-view', view);
     drawSync(); drawMain();
     var gate = S.mode === 'login' || S.mode === 'denied' || S.mode === 'auth';
     $('nav.tabs').hidden = gate;
@@ -120,10 +121,30 @@
     if ((S.entries.length || S.invoices.length) && (!lb || C.daysBetween(lb.slice(0, 10), t) > 30)) out.push(['info', 'bk-open', '', lb ? 'Резервной копии больше месяца' : 'Резервная копия ещё не делалась', 'сохранить в Google Drive']);
     return out;
   }
+  /* круглый объёмный логотип, плоские лучи и четыре кнопки быстрого доступа по диагоналям */
+  var LOGO_ROUND = 'data:image/jpeg;base64,/*LOGO_ROUND*/';
+  function rays() {
+    var out = '', i, a, r1, r2;
+    for (i = 0; i < 48; i++) {
+      a = i * 7.5 * Math.PI / 180; if (i % 12 === 6) continue;          /* на диагоналях — главные лучи к кнопкам */
+      r1 = 66; r2 = i % 2 ? 118 : (i % 4 ? 132 : 146);
+      out += '<line x1="' + (180 + r1 * Math.cos(a)).toFixed(1) + '" y1="' + (180 + r1 * Math.sin(a)).toFixed(1) + '" x2="' + (180 + r2 * Math.cos(a)).toFixed(1) + '" y2="' + (180 + r2 * Math.sin(a)).toFixed(1) + '"/>';
+    }
+    var main = [45, 135, 225, 315].map(function (d) { var a2 = d * Math.PI / 180; return '<path d="M' + (180 + 70 * Math.cos(a2 - 0.05)).toFixed(1) + ' ' + (180 + 70 * Math.sin(a2 - 0.05)).toFixed(1) + ' L' + (180 + 128 * Math.cos(a2)).toFixed(1) + ' ' + (180 + 128 * Math.sin(a2)).toFixed(1) + ' L' + (180 + 70 * Math.cos(a2 + 0.05)).toFixed(1) + ' ' + (180 + 70 * Math.sin(a2 + 0.05)).toFixed(1) + 'z"/>'; }).join('');
+    return '<svg class="rays" viewBox="0 0 360 360" aria-hidden="true"><g class="thin">' + out + '</g><g class="main">' + main + '</g></svg>';
+  }
+  function hero() {
+    return '<div class="hero">' + rays() +
+      '<div class="medal" aria-hidden="true"><div class="ring"><img src="' + LOGO_ROUND + '" alt=""></div></div>' +
+      '<button class="qbtn cam p-tl" data-act="j-new" data-type="ausgabe" data-photo="1">' + QI.cam + '<span>Фото чека</span></button>' +
+      '<button class="qbtn p-tr" data-act="iv-new">' + QI.inv + '<span>Счёт</span></button>' +
+      '<button class="qbtn p-bl" data-act="j-new" data-type="ausgabe">' + QI.minus + '<span>Расход</span></button>' +
+      '<button class="qbtn p-br" data-act="j-new" data-type="einnahme">' + QI.plus + '<span>Поступление</span></button></div>';
+  }
   function vHome() {
     var t = today(), s = S.settings, open = C.openInvoices(S.invoices).sort(function (a, b) { return (a.due || '9') < (b.due || '9') ? -1 : 1; });
     var openSum = open.reduce(function (a, v) { return a + v.total; }, 0), d = new Date(), sm = C.sums(S.entries, t.slice(0, 7));
-    var h = '<div class="quick"><button class="qbtn cam" data-act="j-new" data-type="ausgabe" data-photo="1">' + QI.cam + 'Фото чека</button><button class="qbtn" data-act="j-new" data-type="ausgabe">' + QI.minus + 'Расход</button><button class="qbtn" data-act="j-new" data-type="einnahme">' + QI.plus + 'Поступление</button><button class="qbtn" data-act="iv-new">' + QI.inv + 'Счёт</button></div>';
+    var h = hero();
     var att = attention();
     h += '<div class="card att"><h3>Требует внимания</h3>' + (att.length ? '<div class="list">' + att.map(function (a) {
       return '<button class="item tap att-' + a[0] + '" data-act="' + a[1] + '" ' + a[2] + '><i class="dot"></i><span class="main"><b>' + esc(a[3]) + '</b><span class="meta">' + esc(a[4]) + '</span></span><span class="chev">›</span></button>';

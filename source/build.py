@@ -11,7 +11,7 @@ ICON = {
 t = rd('src/template.html')
 for k, v in ICON.items(): t = t.replace('/*ICON_%s*/' % k, v)
 t = t.replace('/*STYLE*/', rd('src/style.css')).replace('/*CORE*/', rd('src/core.js')).replace('/*BACKEND*/', rd('src/backend.js')).replace('/*APP*/', app)
-for k, f in (('/*LOGO_HEAD*/', 'assets/logo_pdf.b64'), ('/*LOGO_PDF*/', 'assets/logo_pdf.b64'), ('/*FONT_R*/', 'assets/LS-Regular.b64'), ('/*FONT_B*/', 'assets/LS-Bold.b64')):
+for k, f in (('/*LOGO_ROUND*/', 'assets/logo_round.b64'), ('/*LOGO_HEAD*/', 'assets/logo_pdf.b64'), ('/*LOGO_PDF*/', 'assets/logo_pdf.b64'), ('/*FONT_R*/', 'assets/LS-Regular.b64'), ('/*FONT_B*/', 'assets/LS-Bold.b64')):
     t = t.replace(k, rd(f).strip())
 assert '/*' + 'LOGO' not in t and '/*FONT' not in t and '/*ICON' not in t
 os.makedirs(os.path.join(O, 'icons'), exist_ok=True); os.makedirs(os.path.join(O, 'vendor'), exist_ok=True)

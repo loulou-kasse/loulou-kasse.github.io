@@ -377,3 +377,27 @@ button.item:active { transform: scale(.985); }
 .theme-neo .card .tiles .tile.hi span { color: rgba(255, 244, 230, .85); }
 
 .theme-neo .btn.pri, .theme-neo .seg button[aria-selected="true"], .theme-neo .seg button[aria-pressed="true"], .theme-neo .seg.chips button[aria-pressed="true"], .theme-neo .card .tiles .tile.hi { background: var(--grad-txt); }
+
+/* ---------- главная: логотип-медальон с лучами и кнопками быстрого доступа ---------- */
+:root { --grad: linear-gradient(125deg, #1f0a08 0%, #4a2222 26%, #7a4b45 42%, #c69b7f 53%, #ead2ab 58%, #a87a68 64%, #5d3736 80%, #24100d 100%);
+  --hi: 0 4px 14px rgba(90, 60, 50, .14); --hi-sm: 0 2px 8px rgba(90, 60, 50, .12); --in: inset 0 2px 6px rgba(90, 60, 50, .18); }
+.hero { position: relative; width: 100%; max-width: 380px; aspect-ratio: 1 / 1; margin: 0 auto; }
+.hero .rays { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hero .rays .thin line { stroke: var(--line); stroke-width: 1.4; stroke-linecap: round; }
+.hero .rays .main path { fill: #c69b7f; opacity: .55; }
+.hero .medal { position: absolute; left: 50%; top: 50%; width: 44%; aspect-ratio: 1 / 1; transform: translate(-50%, -50%); border-radius: 50%;
+  background: var(--card); box-shadow: var(--hi), 0 10px 30px rgba(60, 25, 20, .18); padding: 5%; }
+.hero .ring { width: 100%; height: 100%; border-radius: 50%; padding: 4%; background: conic-gradient(from 210deg, #24100d, #5d3736, #c69b7f, #ead2ab, #a87a68, #4a2222, #24100d, #7a4b45, #ead2ab, #5d3736, #24100d);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .35); position: relative; }
+.hero .ring img { width: 100%; height: 100%; border-radius: 50%; display: block; object-fit: cover; background: #fff; box-shadow: inset 0 3px 8px rgba(0, 0, 0, .25); }
+.hero .ring::after { content: ''; position: absolute; inset: 4%; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle at 32% 24%, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 42%), radial-gradient(circle at 70% 85%, rgba(60, 25, 20, .12), rgba(60, 25, 20, 0) 50%); }
+.hero .qbtn { position: absolute; width: 27%; transform: translate(-50%, -50%); background: none; border: 0; box-shadow: none; padding: 0; gap: 6px;
+  font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink); }
+.hero .qbtn svg { width: 60px; height: 60px; padding: 16px; border-radius: 50%; background: var(--card); box-shadow: var(--hi); stroke: var(--ink); }
+.hero .qbtn.cam svg { background: var(--grad); stroke: #fff; box-shadow: var(--hi), inset 0 0 0 3px rgba(255, 255, 255, .5); }
+.hero .p-tl { left: 17%; top: 17%; } .hero .p-tr { left: 83%; top: 17%; } .hero .p-bl { left: 17%; top: 83%; } .hero .p-br { left: 83%; top: 83%; }
+.hero .qbtn span { display: block; white-space: nowrap; }
+.hero .qbtn:active svg { box-shadow: var(--in); transform: scale(.92); }
+.theme-classic .hero .qbtn svg, .theme-boutique .hero .qbtn svg { border: 1px solid var(--line); box-shadow: none; }
+body[data-view="home"] .top a img { visibility: hidden; }
