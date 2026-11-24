@@ -52,7 +52,7 @@
     drawMain();
   }
   function draw() {
-    document.body.setAttribute('data-view', view);
+    document.body.setAttribute('data-view', view); document.body.setAttribute('data-home', homeLayout());
     drawSync(); drawMain();
     var gate = S.mode === 'login' || S.mode === 'denied' || S.mode === 'auth';
     $('nav.tabs').hidden = gate;
@@ -149,30 +149,89 @@
       '<stop offset="0" stop-color="#1f0a08"/><stop offset=".3" stop-color="#4a2222"/><stop offset=".5" stop-color="#7a4b45"/><stop offset=".64" stop-color="#c69b7f"/><stop offset=".7" stop-color="#ead2ab"/><stop offset=".77" stop-color="#a87a68"/><stop offset=".9" stop-color="#5d3736"/><stop offset="1" stop-color="#24100d"/></linearGradient></defs>' + segs + '</svg>' +
       '<div class="medal" aria-hidden="true"><div class="ring"><img src="' + LOGO_ROUND + '" alt=""></div></div></div>';
   }
-  function vHome() {
+  /* ---------- главная: общие блоки ---------- */
+  function homeData() {
     var t = today(), s = S.settings, open = C.openInvoices(S.invoices).sort(function (a, b) { return (a.due || '9') < (b.due || '9') ? -1 : 1; });
-    var openSum = open.reduce(function (a, v) { return a + v.total; }, 0), d = new Date(), sm = C.sums(S.entries, t.slice(0, 7));
-    var h = hero();
+    var kv = s.kvLimit || 0, ku = s.kuLimit || 0, pace = C.profitPace(S.entries, t, s.openingDate || ''), yr = t.slice(0, 4);
+    return { t: t, s: s, open: open, openSum: open.reduce(function (a, v) { return a + v.total; }, 0), od: open.filter(function (v) { return C.isOverdue(v, t); }),
+      sm: C.sums(S.entries, t.slice(0, 7)), kv: kv, ku: ku, pace: pace, yr: yr, ums: C.sums(S.entries, yr).einnahme, mon: MES[parseInt(t.slice(5, 7), 10) - 1] };
+  }
+  function secAttention() {
     var att = attention();
-    h += '<div class="card att"><h3>Требует внимания</h3>' + (att.length ? '<div class="list">' + att.map(function (a) {
+    return '<div class="card att"><h3>Требует внимания</h3>' + (att.length ? '<div class="list">' + att.map(function (a) {
       return '<button class="item tap att-' + a[0] + '" data-act="' + a[1] + '" ' + a[2] + '><i class="dot"></i><span class="main"><b>' + esc(a[3]) + '</b><span class="meta">' + esc(a[4]) + '</span></span><span class="chev">›</span></button>';
     }).join('') + '</div>' : '<p class="allok">' + QI.sprig + 'Всё в порядке: документы на месте, счета в срок.</p>') + '</div>';
-    /* ожидаемые поступления */
-    h += '<div class="card"><div class="row"><h3>Ожидаем оплату</h3><b class="right num">' + eur(openSum) + '</b></div>' + (open.length ? '<div class="list">' + open.map(function (v) {
-      var od = C.isOverdue(v, t);
+  }
+  function secOpen(D) {
+    return '<div class="card"><div class="row"><h3>Ожидаем оплату</h3><b class="right num">' + eur(D.openSum) + '</b></div>' + (D.open.length ? '<div class="list">' + D.open.map(function (v) {
+      var od = C.isOverdue(v, D.t);
       return '<button class="item tap" data-act="iv-open" data-no="' + esc(v.no) + '"><span class="main"><b>' + esc(ivName(v)) + '</b><span class="meta">' + esc(v.no) + ' · ' + (v.due ? (od ? '<i class="red">просрочен с ' + esc(C.deDate(v.due)) + '</i>' : 'до ' + esc(C.deDate(v.due))) : 'без срока') + '</span></span><span class="amt num">' + eur(v.total) + '</span></button>';
     }).join('') + '</div>' : '<p class="hint">Все выставленные счета оплачены.</p>') + '</div>';
-    /* месяц и пределы */
-    var kv = s.kvLimit || 0, ku = s.kuLimit || 0, pace = C.profitPace(S.entries, t, s.openingDate || ''), yr = t.slice(0, 4), ums = C.sums(S.entries, yr).einnahme;
-    var rest = kv - pace.month, restAvg = kv - pace.avg, m1 = meter(pace.month, kv), m2 = meter(ums, ku);
-    h += '<div class="card"><div class="tiles t3"><div class="tile"><span>Выручка</span><b>' + eur(sm.einnahme) + '</b></div><div class="tile"><span>Расходы</span><b>' + eur(sm.ausgabe) + '</b></div><div class="tile hi"><span>Прибыль</span><b>' + eur(sm.gewinn) + '</b></div></div><p class="hint">' + MES[d.getMonth()] + ' ' + d.getFullYear() + '</p>' +
-      '<h3>Семейная страховка</h3>' + (kv ? '<p class="lim">' + (rest >= 0 ? 'В этом месяце можно ещё <b class="num">' + eur(rest) + '</b> прибыли' : 'В этом месяце предел превышен на <b class="num red">' + eur(-rest) + '</b>') + '</p>' + m1.html +
-      '<p class="hint">В среднем с ' + MES_GEN[parseInt(pace.from.slice(5), 10) - 1].replace(/я$/, 'я') + ': <b class="num">' + eur(pace.avg) + '</b> в месяц' + (restAvg >= 0 ? ', запас ' + eur(restAvg) : ', <i class="red">выше предела ' + eur(kv) + '</i>') + '. Касса обычно смотрит на среднюю прибыль за год.</p>' : '<p class="hint">Предел не задан: «Ещё» → «Настройки».</p>') +
-      '<h3>Kleinunternehmer · оборот ' + yr + '</h3>' + (ku ? '<p class="lim">Оборот <b class="num">' + eur(ums) + '</b>, до порога ещё <b class="num">' + eur(Math.max(0, ku - ums)) + '</b></p>' + m2.html : '<p class="hint">Порог не задан.</p>') + '</div>';
-    h += '<div class="choices"><a class="choice" href="#guide"><span><b>Справочник</b><span class="sub">как оплатить, принять оплату, перевести между счетами</span></span></a></div>';
+  }
+  function limText(D) {
+    var rest = D.kv - D.pace.month;
+    return rest >= 0 ? 'запас до ' + eur(D.kv) + ': ' + eur(rest) : 'предел ' + eur(D.kv) + ' превышен на ' + eur(-rest);
+  }
+  function secLimits(D, withMonth) {
+    var rest = D.kv - D.pace.month, restAvg = D.kv - D.pace.avg, m1 = meter(D.pace.month, D.kv), m2 = meter(D.ums, D.ku), sm = D.sm;
+    return '<div class="card">' + (withMonth ? '<div class="tiles t3"><div class="tile"><span>Выручка</span><b>' + eur(sm.einnahme) + '</b></div><div class="tile"><span>Расходы</span><b>' + eur(sm.ausgabe) + '</b></div><div class="tile hi"><span>Прибыль</span><b>' + eur(sm.gewinn) + '</b></div></div><p class="hint">' + D.mon + ' ' + D.yr + '</p>' : '') +
+      '<h3>Семейная страховка</h3>' + (D.kv ? '<p class="lim">' + (rest >= 0 ? 'В этом месяце можно ещё <b class="num">' + eur(rest) + '</b> прибыли' : 'В этом месяце предел превышен на <b class="num red">' + eur(-rest) + '</b>') + '</p>' + m1.html +
+      '<p class="hint">В среднем с ' + MES_GEN[parseInt(D.pace.from.slice(5), 10) - 1] + ': <b class="num">' + eur(D.pace.avg) + '</b> в месяц' + (restAvg >= 0 ? ', запас ' + eur(restAvg) : ', <i class="red">выше предела ' + eur(D.kv) + '</i>') + '. Касса обычно смотрит на среднюю прибыль за год.</p>' : '<p class="hint">Предел не задан: «Ещё» → «Настройки».</p>') +
+      '<h3>Kleinunternehmer · оборот ' + D.yr + '</h3>' + (D.ku ? '<p class="lim">Оборот <b class="num">' + eur(D.ums) + '</b>, до порога ещё <b class="num">' + eur(Math.max(0, D.ku - D.ums)) + '</b></p>' + m2.html : '<p class="hint">Порог не задан.</p>') + '</div>';
+  }
+  function secTail() {
+    var h = '<div class="choices"><a class="choice" href="#guide"><span><b>Справочник</b><span class="sub">как оплатить, принять оплату, перевести между счетами</span></span></a></div>';
     if (!reqOk()) h += '<div class="banner">Для выставления счетов заполните реквизиты: «Ещё» → «Настройки».</div>';
     if (!S.entries.length && !S.invoices.length && S.mode === 'sync') h += '<div class="card"><h3>Перенос из старой версии</h3><p class="hint">«Ещё» → «Резервная копия» → «Восстановление» и выберите файл переноса.</p></div>';
     return h;
+  }
+  var HOMES = [['card', 'Карточка'], ['feed', 'Список дел'], ['tiles', 'Плитки'], ['arcs', 'Логотип']];
+  function homeLayout() { try { var v = localStorage.getItem('kasse-home'); return HOMES.some(function (x) { return x[0] === v; }) ? v : 'card'; } catch (e) { return 'card'; } }
+  function vHome() {
+    var D = homeData(), L = homeLayout();
+    if (L === 'feed') return homeFeed(D);
+    if (L === 'tiles') return homeTiles(D);
+    if (L === 'arcs') return hero() + secAttention() + secOpen(D) + secLimits(D, true) + secTail();
+    return homeCard(D);
+  }
+  /* А. банковская карточка */
+  function homeCard(D) {
+    var sm = D.sm, p = D.kv ? Math.max(0, Math.min(100, Math.round(D.pace.month / D.kv * 100))) : 0, over = D.kv && D.pace.month > D.kv;
+    var h = '<div class="bcard"><div class="bc-head"><span>Прибыль · ' + D.mon + '</span><img src="' + LOGO_ROUND + '" alt=""></div><b class="bc-big num">' + eur(sm.gewinn) + '</b>' +
+      '<div class="bc-row"><span>Выручка <b class="num">' + eur(sm.einnahme) + '</b></span><span>Расходы <b class="num">' + eur(sm.ausgabe) + '</b></span></div>' +
+      (D.kv ? '<div class="bc-bar' + (over ? ' over' : '') + '"><i style="width:' + p + '%"></i></div><div class="bc-sub">Семейная страховка: ' + esc(limText(D)) + '</div>' : '') + '</div>';
+    h += '<div class="qrow"><button class="qb cam" data-act="j-new" data-type="ausgabe" data-photo="1">' + QI.cam + '<span>Фото чека</span></button><button class="qb" data-act="j-new" data-type="ausgabe">' + QI.minus + '<span>Расход</span></button><button class="qb" data-act="j-new" data-type="einnahme">' + QI.plus + '<span>Выручка</span></button><button class="qb" data-act="iv-new">' + QI.inv + '<span>Счёт</span></button></div>';
+    return h + secAttention() + secOpen(D) + secLimits(D, false) + secTail();
+  }
+  /* Б. список дел: каждая карточка с кнопкой действия; «+» внизу справа */
+  function homeFeed(D) {
+    var cards = [], st = C.stornoedIds(S.entries), mb = missingBeleg(), t = D.t, pm = C.prevMonth(t.slice(0, 7));
+    D.od.forEach(function (v) { cards.push(['stop', 'Счёт ' + v.no + ' просрочен', ivName(v) + ' · ' + eur(v.total) + ' · срок был ' + C.deDate(v.due), 'Напомнить', 'data-act="iv-remind" data-no="' + esc(v.no) + '"']); });
+    mb.slice(0, 3).forEach(function (e) { cards.push(['warn', 'Нет чека: ' + (e.text || e.party || 'расход'), C.deDate(e.date) + ' · ' + eur(e.amount), 'Добавить', 'data-act="e-open" data-id="' + esc(e.id) + '"']); });
+    if (mb.length > 3) cards.push(['warn', 'Ещё ' + (mb.length - 3) + ' без чека', 'расходы без документа', 'Показать', 'data-act="go-nobeleg"']);
+    D.open.filter(function (v) { return !C.isOverdue(v, t); }).forEach(function (v) { cards.push(['info', 'Ждём оплату: ' + ivName(v), eur(v.total) + (v.due ? ' · до ' + C.deDate(v.due) : ''), 'Оплачено', 'data-act="iv-pay" data-no="' + esc(v.no) + '"']); });
+    attention().forEach(function (a) { if (a[1] === 'go-rec' || a[1] === 'go-nocat' || a[1] === 'go-more' || a[1] === 'bk-open') cards.push([a[0], a[3], a[4], { 'go-rec': 'Сверить', 'go-nocat': 'Разобрать', 'go-more': 'Открыть', 'bk-open': 'Сохранить' }[a[1]], 'data-act="' + a[1] + '" ' + a[2]]); });
+    var h = '<div class="row"><h2>Дела</h2><span class="right pill ' + (cards.length ? 'warn' : 'ok') + '">' + (cards.length || 'нет') + '</span></div>';
+    h += cards.length ? '<div class="feed">' + cards.map(function (c) { return '<div class="fcard f-' + c[0] + '"><i class="dot"></i><span class="main"><b>' + esc(c[1]) + '</b><span class="meta">' + esc(c[2]) + '</span></span><button class="btn sm ' + (c[0] === 'stop' ? 'pri' : '') + '" ' + c[4] + '>' + esc(c[3]) + '</button></div>'; }).join('') + '</div>' :
+      '<div class="card"><p class="allok">' + QI.sprig + 'Всё в порядке: дел нет.</p></div>';
+    var sm = D.sm;
+    h += '<div class="card"><h3>' + D.mon + '</h3><div class="tiles t3"><div class="tile"><span>Выручка</span><b>' + eur(sm.einnahme) + '</b></div><div class="tile"><span>Расходы</span><b>' + eur(sm.ausgabe) + '</b></div><div class="tile hi"><span>Прибыль</span><b>' + eur(sm.gewinn) + '</b></div></div>' + (D.kv ? '<p class="hint">Семейная страховка: ' + esc(limText(D)) + '</p>' : '') + '</div>';
+    h += secTail();
+    h += '<div class="fab" id="fab"><div class="fab-menu"><button data-act="j-new" data-type="ausgabe" data-photo="1">' + QI.cam + '<span>Фото чека</span></button><button data-act="j-new" data-type="ausgabe">' + QI.minus + '<span>Расход</span></button><button data-act="j-new" data-type="einnahme">' + QI.plus + '<span>Выручка</span></button><button data-act="iv-new">' + QI.inv + '<span>Счёт</span></button></div><button class="fab-btn" data-act="fab" aria-label="Добавить">' + QI.plus + '</button></div>';
+    return h;
+  }
+  /* В. четыре плитки: цифра и вход, в углу «+» */
+  function homeTiles(D) {
+    var mb = missingBeleg().length, sm = D.sm;
+    var tile = function (cls, act, label, big, sub, plus) {
+      return '<div class="t4 ' + cls + '"><button class="t4-main" ' + act + '><span>' + label + '</span><b class="num">' + big + '</b><em>' + sub + '</em></button>' + (plus ? '<button class="t4-plus" ' + plus + ' aria-label="Добавить">' + QI.plus + '</button>' : '') + '</div>';
+    };
+    var h = '<div class="t4grid">' +
+      tile(mb ? 'warn' : '', 'data-act="go-nobeleg"', 'Чеки', mb ? String(mb) : '✓', mb ? plural(mb, 'расход', 'расхода', 'расходов') + ' без чека' : 'все на месте', 'data-act="j-new" data-type="ausgabe" data-photo="1"') +
+      tile(D.od.length ? 'warn' : '', 'data-act="go-iv-open"', 'Счета', eur(D.openSum), 'ждём · ' + D.open.length + ' ' + plural(D.open.length, 'счёт', 'счёта', 'счетов') + (D.od.length ? ', просрочено ' + D.od.length : ''), 'data-act="iv-new"') +
+      tile('hi', 'data-act="go-month"', 'Прибыль · ' + D.mon, eur(sm.gewinn), 'выручка ' + eur(sm.einnahme) + ' · расходы ' + eur(sm.ausgabe), 'data-act="j-new" data-type="einnahme"') +
+      tile(D.kv && D.pace.month > D.kv ? 'warn' : '', 'data-act="go-limits"', 'Страховка', D.kv ? eur(Math.max(0, D.kv - D.pace.month)) : '—', D.kv ? 'запас в этом месяце, среднее ' + eur(D.pace.avg) : 'предел не задан', '') + '</div>';
+    return h + secAttention() + '<div id="limits"></div>' + secLimits(D, false) + secTail();
   }
   function plural(n, a, b, c) { var m10 = n % 10, m100 = n % 100; return m10 === 1 && m100 !== 11 ? a : m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14) ? b : c; }
 

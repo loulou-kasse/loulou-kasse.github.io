@@ -15,6 +15,10 @@
     else if (a === 'go-iv-open') { ivf = 'open'; location.hash = '#invoices'; }
     else if (a === 'go-rec') { month = b.dataset.m; jf = { q: '', kind: 'all' }; if (view === 'journal') drawMain(); else location.hash = '#journal'; }
     else if (a === 'go-more') location.hash = '#more';
+    else if (a === 'go-month') { month = today().slice(0, 7); jf = { q: '', kind: 'all' }; location.hash = '#journal'; }
+    else if (a === 'go-limits') { var lm = $('#limits'); if (lm) lm.scrollIntoView({ behavior: 'smooth' }); }
+    else if (a === 'fab') { $('#fab').classList.toggle('open'); }
+    else if (a === 'home-layout') { try { localStorage.setItem('kasse-home', b.dataset.l); } catch (e) {} draw(); }
     else if (a === 'theme') { setTheme(b.dataset.t); drawMain(); }
     else if (a === 'go-nobeleg') { jf = { q: '', kind: 'nobeleg' }; month = 'all'; closeSheet(); if (view === 'journal') drawMain(); else location.hash = '#journal'; }
     else if (a === 'go-nocat') { jf = { q: '', kind: 'nocat' }; month = 'all'; closeSheet(); if (view === 'journal') drawMain(); else location.hash = '#journal'; }
