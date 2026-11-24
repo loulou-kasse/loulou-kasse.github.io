@@ -1,0 +1,5 @@
+"Auftragskonto";"Buchungstag";"Valutadatum";"Buchungstext";"Verwendungszweck";"Glaeubiger ID";"Mandatsreferenz";"Kundenreferenz (End-to-End)";"Sammlerreferenz";"Lastschrift Ursprungsbetrag";"Auslagenersatz Ruecklastschrift";"Beguenstigter/Zahlungspflichtiger";"Kontonummer/IBAN";"BIC (SWIFT-Code)";"Betrag";"Waehrung";"Info"
+"DE59390500001077933362";"16.10.26";"16.10.26";"GUTSCHR. ‹BERWEISUNG";"Blumenstrauﬂ";"";"";"";"";"";"";"Anastasiya Shcherbatsevich";"";"";"40,00";"EUR";"Umsatz gebucht"
+"DE59390500001077933362";"27.10.26";"27.10.26";"KARTENZAHLUNG";"HB-Handy-Laden Aachen";"";"";"";"";"";"";"HB-Handy-Laden";"";"";"-15,00";"EUR";"Umsatz gebucht"
+"DE59390500001077933362";"30.10.26";"30.10.26";"ENTGELTABSCHLUSS";"Rechnung Unzustellbare Post";"";"";"";"";"";"";"Sparkasse Aachen";"";"";"-25,00";"EUR";"Umsatz gebucht"
+"DE59390500001077933362";"07.10.26";"07.10.26";"KARTENZAHLUNG";"FleuraMetz Groﬂmarkt 2026-10-07";"";"";"";"";"";"";"FLEURAMETZ";"";"";"-107,40";"EUR";"Umsatz gebucht"

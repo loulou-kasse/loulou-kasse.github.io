@@ -1,0 +1,197 @@
+import asyncio, sys, json, base64, io, zipfile, os
+sys.path.insert(0, os.path.dirname(__file__)); from harness import *
+R = {}
+def check(name, cond, info=''):
+    R[name] = bool(cond)
+    print(('OK   ' if cond else 'FAIL ') + name + ('' if cond else '  ' + str(info)[:300]))
+async def txt(pg, sel='#main'): return await pg.eval_on_selector(sel, 'e=>e.textContent')
+async def db(pg): return await pg.evaluate("JSON.parse(localStorage.getItem('__fbmock')||'{}')")
+async def main():
+    srv = serve()
+    async with async_playwright() as p:
+        b, pg, errs, drive = await page(p)
+        await pg.goto(URL); await pg.wait_for_timeout(400)
+        check('вход: экран входа, вкладки скрыты', 'Войти через Google' in await txt(pg) and await pg.is_hidden('nav.tabs'))
+        await pg.click('[data-act=login]'); await pg.wait_for_timeout(500)
+        check('вход: главная после входа', 'Ждём оплату' in await txt(pg) and await pg.is_visible('nav.tabs'))
+        check('пустая база: подсказка о переносе', 'Перенос из старой версии' in await txt(pg))
+        # --- восстановление из копии старой версии ---
+        await pg.goto(URL + '#more'); await pg.wait_for_timeout(200)
+        await pg.click('[data-act=bk-open]'); await pg.set_input_files('#bk-file', 'test/backup_sample.json'); await pg.wait_for_timeout(300)
+        check('копия: сводка 6 записей и 4 счёта', '6 записей журнала, 4 счетов' in await txt(pg, '#sheet'), await txt(pg, '#sheet'))
+        await pg.click('[data-act=bk-ok]'); await pg.wait_for_timeout(500)
+        d = await db(pg)
+        check('копия: всё перенесено в базу', len([k for k in d if k.startswith('entries/')]) == 6 and len([k for k in d if k.startswith('invoices/')]) == 4 and d['meta/settings']['iban'].startswith('DE59'))
+        # --- главная ---
+        await pg.goto(URL + '#home'); await pg.wait_for_timeout(300)
+        t = await txt(pg)
+        check('главная: ждём оплату 240,00 € по 2 счетам', '240,00 €' in t and '2 счёта' in t, t[:400])
+        check('главная: без чека 2 расхода', 'Без чека2' in t, t[:500])
+        # --- счета: список ---
+        await pg.goto(URL + '#invoices'); await pg.wait_for_timeout(300)
+        t = await txt(pg)
+        check('счета: фильтр «Открытые» по умолчанию, 2 шт.', 'Открытые · 2' in t and 'Stiftung PCM' in t and 'Brandualist' not in t, t)
+        await pg.click('[data-act=ivf][data-f=all]'); await pg.wait_for_timeout(100)
+        check('счета: «Все» — 4 шт.', 'Brandualist' in await txt(pg))
+        await pg.click('[data-act=iv-open][data-no="202611003"]'); await pg.wait_for_timeout(200)
+        t = await txt(pg, '#sheet')
+        check('счёт: карточка с действиями', 'Rechnung 202611003' in t and 'Отметить оплату' in t and 'PDF в Google Drive' in t, t)
+        # PDF в Drive: окно Google, затем загрузка в Rechnungen
+        await pg.click('[data-act=iv-drive]'); await pg.wait_for_timeout(800)
+        up = drive.uploads[-1] if drive.uploads else {}
+        check('Drive: доступ запрошен с областью drive', 'https://www.googleapis.com/auth/drive' in (await pg.evaluate('window.__driveScopes') or []))
+        check('Drive: PDF счёта загружен в папку Rechnungen', up.get('meta', {}).get('parents') == ['1dnU_sH4_htAFJDYVg5qKmmblLX4wroOR'] and up['meta']['name'] == 'Rechnung_202611003.pdf', up)
+        # PDF на устройство
+        await pg.click('[data-act=iv-pdf]'); s = await saved(pg, 1)
+        check('PDF на устройство: файл Rechnung_202611003.pdf', s and s[-1]['name'] == 'Rechnung_202611003.pdf' and base64.b64decode(s[-1]['b64'])[:4] == b'%PDF')
+        await pg.click('.sheet-x')
+        # --- новый счёт: клиент из прошлых счетов, проверка, предпросмотр, выставление ---
+        await pg.click('[data-act=iv-new]'); await pg.wait_for_timeout(200)
+        opts = await pg.eval_on_selector_all('#iv-client option', 'os=>os.map(o=>o.textContent)')
+        check('форма: список клиентов из прошлых счетов', any('Stiftung PCM' in o for o in opts) and any('Kristina Nilmaier · 2' in o for o in opts), opts)
+        await pg.fill('#iv-rcpt', 'Stiftung PCM\nPromenade 1\n6411 JA Heerlen')
+        await pg.fill('#it-t-0', 'Ballondekoration'); await pg.fill('#it-p-0', '80')
+        await pg.click('[data-act=iv-check]'); await pg.wait_for_timeout(200)
+        t = await txt(pg, '#iv-prev')
+        check('проверка: нет страны — предупреждение', 'страна не указана' in t, t)
+        check('проверка: предпросмотр листа счёта', await pg.is_visible('.paper') and 'Rechnungsbetrag (EUR)' in t and '80,00' in t)
+        await pg.click('[data-act=iv-draft]'); s = await saved(pg, 2)
+        check('PDF-черновик скачивается', s[-1]['name'].startswith('ENTWURF_Rechnung_2026'))
+        await pg.click('[data-act=iv-edit]')
+        await pg.select_option('#iv-client', label=[o for o in opts if 'Stiftung PCM' in o][0]); await pg.wait_for_timeout(50)
+        check('форма: адрес клиента подставлен', 'Niederlande' in await pg.input_value('#iv-rcpt'))
+        await pg.click('[data-act=iv-check]'); await pg.wait_for_timeout(200)
+        t = await txt(pg, '#iv-prev')
+        check('проверка: иностранный клиент + короткое описание', 'Клиент из другой страны' in t and 'слишком короткое' in t, t)
+        await pg.click('[data-act=iv-edit]')
+        await pg.fill('#it-t-0', 'Ballongirlande aus eigenem Material, Lieferung und Montage in Aachen')
+        await pg.select_option('#iv-duesel', label='innerhalb von 7 Tagen nach Rechnungsdatum')
+        await pg.click('[data-act=iv-check]'); await pg.wait_for_timeout(200)
+        t = await txt(pg, '#iv-prev')
+        check('проверка: осталось только «к сведению»', 'Проверьте.' not in t and 'К сведению.' in t, t)
+        await pg.click('[data-act=iv-issue]'); await pg.wait_for_timeout(600)
+        d = await db(pg)
+        check('выставление: номер 202611004 (003 уже занят)', 'invoices/202611004' in d and d['invoices/202611004']['total'] == 8000, [k for k in d if 'invoices' in k])
+        check('выставление: открылась карточка нового счёта', 'Rechnung 202611004' in await txt(pg, '#sheet'))
+        # оплата -> запись в журнале со статьёй «выручка»
+        await pg.click('[data-act=iv-pay]'); await pg.click('[data-act=pay-ok]'); await pg.wait_for_timeout(400)
+        d = await db(pg); e = [v for k, v in d.items() if k.startswith('entries/') and v.get('invoiceNo') == '202611004']
+        check('оплата: запись выручки со статьёй umsatz', len(e) == 1 and e[0]['cat'] == 'umsatz' and e[0]['amount'] == 8000 and d['invoices/202611004']['status'] == 'bezahlt', e)
+        # гонка за номер: другой «телефон» занял 202611005 раньше
+        await pg.evaluate("(()=>{var d=JSON.parse(localStorage.getItem('__fbmock'));d['invoices/202611005']={no:'202611005',title:'Rechnung',date:'2026-11-24',total:100,items:[],rcpt:'X',status:'offen'};localStorage.setItem('__fbmock',JSON.stringify(d));})()")
+        await pg.goto(URL + '#invoices'); await pg.wait_for_timeout(50)
+        await pg.evaluate("1")  # снимок ещё не пришёл: приложение предложит 202611005
+        await pg.click('[data-act=iv-new]'); no0 = await pg.input_value('#iv-no')
+        await pg.fill('#iv-rcpt', 'Max Muster\nHauptstr. 1\n52062 Aachen'); await pg.fill('#it-t-0', 'Blumenstrauss'); await pg.fill('#it-p-0', '45')
+        await pg.click('[data-act=iv-check]'); await pg.click('[data-act=iv-issue]'); await pg.wait_for_timeout(600)
+        d = await db(pg)
+        check('номер: занятый номер не перезаписан, выдан следующий', d['invoices/202611005']['total'] == 100 and 'invoices/202611006' in d and d['invoices/202611006']['total'] == 4500, (no0, [k for k in d if 'invoices' in k]))
+        # без интернета счёт не выставляется
+        await pg.evaluate('window.__fbOffline=true')
+        await pg.click('.sheet-x'); await pg.click('[data-act=iv-new]')
+        await pg.fill('#iv-rcpt', 'Max Muster\nHauptstr. 1\n52062 Aachen'); await pg.fill('#it-t-0', 'Blumenstrauss rot'); await pg.fill('#it-p-0', '46')
+        await pg.click('[data-act=iv-check]'); await pg.click('[data-act=iv-issue]'); await pg.wait_for_timeout(300)
+        check('офлайн: понятная ошибка, счёт не создан', 'нужен интернет' in await txt(pg, '#iv-prev .err'), await txt(pg, '#iv-prev'))
+        await pg.evaluate('window.__fbOffline=false'); await pg.click('.sheet-x')
+        # просрочка и напоминание
+        await pg.evaluate("(()=>{var d=JSON.parse(localStorage.getItem('__fbmock'));d['invoices/202611003'].due='2026-11-01';localStorage.setItem('__fbmock',JSON.stringify(d));})()")
+        await pg.goto(URL + '#home'); await pg.reload(); await pg.wait_for_timeout(500)
+        t = await txt(pg)
+        check('главная: просроченный счёт показан', 'просрочено 1' in t and 'Просроченные счета' in t, t[:600])
+        await pg.click('[data-act=iv-open][data-no="202611003"]'); await pg.click('[data-act=iv-remind]')
+        await pg.click('[data-act=rm-pdf]'); s = await saved(pg, 3)
+        check('напоминание: PDF Zahlungserinnerung', s[-1]['name'].startswith('Zahlungserinnerung_202611003'))
+        await pg.wait_for_timeout(200); d = await db(pg)
+        check('напоминание: дата записана в счёт', len(d['invoices/202611003'].get('reminders', [])) == 1)
+        await pg.click('.sheet-x')
+        # --- журнал ---
+        await pg.goto(URL + '#journal'); await pg.wait_for_timeout(200)
+        await pg.click('[data-act=jf][data-f=nobeleg]'); t = await txt(pg)
+        check('журнал: фильтр «без чека» — 2 расхода', t.count('без чека') >= 2 and 'Guthaben Mobilfunk' in t and 'Blumenstrauß' not in t, t)
+        await pg.click('[data-act=jf][data-f=all]')
+        await pg.fill('#j-q', 'khava'); await pg.wait_for_timeout(400)
+        t = await txt(pg); check('журнал: поиск', 'Khava' in t and 'Telekom' not in t, t)
+        check('журнал: поле поиска сохраняет фокус', await pg.evaluate("document.activeElement.id") == 'j-q')
+        await pg.fill('#j-q', ''); await pg.wait_for_timeout(400)
+        # карточка записи: статья, «выписки достаточно», отмена внутри
+        await pg.click('[data-act=e-open][data-id="e-20261030-sparkasse"]'); t = await txt(pg, '#sheet')
+        check('запись: карточка без кнопки отмены в списке', 'Отменить запись' in t and await pg.locator('#main [data-act=j-storno]').count() == 0)
+        await pg.select_option('#ev-cat', 'bank'); await pg.wait_for_timeout(200)
+        await pg.click('[data-act=ev-nob][data-v="1"]'); await pg.wait_for_timeout(200)
+        d = await db(pg); e = d['entries/e-20261030-sparkasse']
+        check('запись: статья и «выписки достаточно» сохранены', e.get('cat') == 'bank' and e.get('noBeleg') == 'kontoauszug', e)
+        await pg.click('.sheet-x')
+        # фото чека к записи Telekom
+        await pg.click('[data-act=e-open][data-id="e-20261027-telekom"]')
+        await pg.set_input_files('#ev-file', 'test/receipt.jpg'); await pg.wait_for_timeout(1200)
+        d = await db(pg); e = d['entries/e-20261027-telekom']
+        bel = [u for u in drive.uploads if u['meta'].get('name', '').startswith('2026-10-27')]
+        check('чек: загружен в Belege/2026-10 и привязан', e.get('beleg', {}).get('id') and bel and bel[-1]['meta']['parents'][0] == drive.folders.get((drive.folders.get(('1T16eFA8SrZM-8K4-9YHqiikAjdbiT2rC', 'Belege')), '2026-10')), (e, bel, drive.folders))
+        check('чек: фото уменьшено и в JPEG', bel and bel[-1]['size'] < os.path.getsize('test/receipt.jpg') and b'image/jpeg' in bel[-1]['ctype'][-1], bel and bel[-1]['size'])
+        await pg.click('.sheet-x')
+        # новая запись с шаблоном, статьёй и фото; Drive уже подключён
+        await pg.click('[data-act=j-new]'); await pg.select_option('#e-type', 'ausgabe')
+        await pg.fill('#e-amt', '180'); await pg.fill('#e-text', 'Storebox Miete Dezember'); await pg.fill('#e-party', 'Storebox')
+        await pg.select_option('#e-cat', 'raum'); await pg.check('#e-savetpl'); await pg.set_input_files('#e-file', 'test/receipt.jpg')
+        await pg.click('[data-act=e-save]'); await pg.wait_for_timeout(1200)
+        d = await db(pg); e = [v for k, v in d.items() if k.startswith('entries/') and v.get('party') == 'Storebox']
+        t = [v for k, v in d.items() if k.startswith('templates/')]
+        check('запись: сохранена со статьёй и чеком', len(e) == 1 and e[0]['cat'] == 'raum' and e[0].get('beleg', {}).get('id'), e)
+        check('шаблон: сохранён', len(t) == 1 and t[0]['amount'] == 18000 and t[0]['cat'] == 'raum', t)
+        await pg.click('[data-act=j-new]'); await pg.select_option('#e-tpl', index=1)
+        check('шаблон: заполняет форму', await pg.input_value('#e-amt') == '180,00' and await pg.input_value('#e-cat') == 'raum' and await pg.input_value('#e-party') == 'Storebox')
+        await pg.click('.sheet-x')
+        # Eigenbeleg -> журнал + Drive Eigenbelege
+        await pg.goto(URL + '#more'); await pg.click('[data-act=eb-new]')
+        await pg.fill('#eb-amt', '12,50'); await pg.fill('#eb-emp', 'Wochenmarkt Aachen'); await pg.fill('#eb-zweck', 'Schleifenband'); await pg.select_option('#eb-way', 'B'); await pg.select_option('#eb-cat', 'waren')
+        await pg.click('[data-act=eb-drive]'); await pg.wait_for_timeout(800)
+        d = await db(pg); e = [v for k, v in d.items() if k.startswith('entries/') and v.get('party') == 'Wochenmarkt Aachen']
+        up = drive.uploads[-1]
+        check('Eigenbeleg: PDF в папку Eigenbelege, расход в журнале с документом', up['meta']['parents'] == ['1GRaZvdai2-7sp4VTBFmkA_z8-Bozjthg'] and len(e) == 1 and e[0]['beleg']['kind'] == 'eigenbeleg' and e[0]['way'] == 'B' and e[0]['cat'] == 'waren', (up, e))
+        # EÜR
+        await pg.goto(URL + '#more'); await pg.click('[data-act=euer-open]'); t = await txt(pg, '#sheet')
+        check('EÜR: контроль пройден, строка «Банк» 25,00', 'Контроль' in t and 'не пройден' not in t and '25,00' in t, t)
+        check('EÜR: есть записи без статьи', 'без статьи' in t)
+        await pg.click('[data-act=euer-csv]'); s = await saved(pg, 4)
+        csv = base64.b64decode(s[-1]['b64']).decode('utf-8-sig')
+        check('EÜR: CSV с контролем', 'Kontrolle: Summe der Zeilen = Journal;ja' in csv and 'Raumkosten, Lager;180,00' in csv, csv)
+        await pg.click('.sheet-x')
+        # выписка банка
+        await pg.click('[data-act=bank-open]'); await pg.set_input_files('#bank-file', 'test/camt_sample.csv'); await pg.wait_for_timeout(400)
+        t = await txt(pg, '#sheet')
+        check('выписка: сопоставление', 'Совпадают с журналом: 3' in t and 'Нет в журнале: 1' in t and 'FLEURAMETZ' in t, t)
+        await pg.click('[data-act=bank-add]');
+        check('выписка: «Внести» заполняет запись', await pg.input_value('#e-amt') == '107,40' and await pg.input_value('#e-party') == 'FLEURAMETZ' and await pg.input_value('#e-date') == '2026-10-07')
+        await pg.fill('#e-text', 'Blumen Fleurametz'); await pg.select_option('#e-cat', 'waren'); await pg.check('#e-nob')
+        await pg.click('[data-act=e-save]'); await pg.wait_for_timeout(700)
+        t = await txt(pg, '#sheet')
+        check('выписка: после внесения список обновился', 'Совпадают с журналом: 4' in t and 'Нет в журнале' not in t, t)
+        await pg.click('.sheet-x')
+        # пакет для Steuerberater
+        await pg.click('[data-act=pack-open]'); await pg.click('[data-act=pack-make][data-k=dl]'); s = await saved(pg, 5, 6000)
+        z = zipfile.ZipFile(io.BytesIO(base64.b64decode(s[-1]['b64']))); names = z.namelist()
+        check('пакет: ZIP со всеми файлами', all(n in names for n in ['Journal_2026.csv', 'EUER_2026.csv', 'Rechnungen_2026.csv', 'Belege_2026.csv', 'LIESMICH.txt']) and len([n for n in names if n.startswith('Rechnungen/') and n.endswith('.pdf')]) == 7, names)
+        bl = z.read('Belege_2026.csv').decode('utf-8-sig')
+        check('пакет: список документов со ссылками и «FEHLT»', 'drive.google.com' in bl and 'Kontoauszug' in bl, bl)
+        check('пакет: PDF счетов настоящие', z.read('Rechnungen/Rechnung_202611004.pdf')[:4] == b'%PDF')
+        await pg.click('.sheet-x')
+        # резервная копия в Drive
+        await pg.click('[data-act=bk-open]'); await pg.click('[data-act=bk-drive]'); await pg.wait_for_timeout(600)
+        up = drive.uploads[-1]; d = await db(pg)
+        check('копия в Drive: папка Backups, дата записана', up['meta']['name'].startswith('LOULOU_Kasse_') and d['meta/settings'].get('lastBackup'), up)
+        await pg.click('.sheet-x')
+        # настройки: поменять папку Rechnungen
+        await pg.click('[data-act=set-open]'); await pg.click('#sheet details summary'); await pg.fill('#s-d-rechnungen', 'bad id!'); await pg.click('[data-act=set-save]')
+        check('настройки: неверный id папки отклонён', 'Идентификатор папки' in await txt(pg, '#sheet .err'))
+        await pg.fill('#s-d-rechnungen', '1NEWfolderID_abcdef'); await pg.click('[data-act=set-save]'); await pg.wait_for_timeout(300)
+        d = await db(pg)
+        check('настройки: папка сохранена, реквизиты не потеряны', d['meta/settings']['drive'] == {'rechnungen': '1NEWfolderID_abcdef'} and d['meta/settings']['iban'].startswith('DE59') and d['meta/settings'].get('lastBackup'), d['meta/settings'])
+        # отказ в доступе
+        await pg.evaluate("localStorage.setItem('__fbDeny','1')"); await pg.reload(); await pg.wait_for_timeout(500)
+        check('нет доступа: экран с адресом и выходом', 'Нет доступа' in await txt(pg) and 'malyata777@gmail.com' in await txt(pg), await txt(pg))
+        await pg.evaluate("localStorage.removeItem('__fbDeny')"); await pg.click('[data-act=logout]'); await pg.wait_for_timeout(300)
+        check('выход: снова экран входа', 'Войти через Google' in await txt(pg))
+        check('ошибок JS нет', not errs, errs)
+        await b.close()
+    ok = sum(R.values()); print('\n%d из %d проверок' % (ok, len(R)))
+asyncio.run(main())
