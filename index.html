@@ -294,8 +294,11 @@ table.euer tr.warnr td { color: var(--warn); }
 .theme-boutique .tile b, .theme-boutique .amt { font-weight: 400; }
 
 /* ================= «Объёмный»: мягкий рельеф (neumorphism), светло-серый фон, градиент роза → орхидея → барвинок ================= */
-.theme-neo { --paper: #e9e9ef; --card: #e9e9ef; --ink: #2a2834; --muted: #8b8999; --line: #d9d9e2; --accent: #8e5fd6; --gold: #b9a3e6; --r: 22px;
-  --grad: linear-gradient(135deg, #e46fb5 0%, #a46be0 52%, #6f86f0 100%);
+.theme-neo { --paper: #e9e9ef; --card: #e9e9ef; --ink: #2a2834; --muted: #8b8999; --line: #d9d9e2; --accent: #7a4b45; --gold: #c69b7f; --r: 22px;
+  /* градиент как буквы LOU LOU в логотипе: тёмный шоколад, гранёное розовое золото и шампань-блик */
+  --grad: linear-gradient(125deg, #1f0a08 0%, #4a2222 26%, #7a4b45 42%, #c69b7f 53%, #ead2ab 58%, #a87a68 64%, #5d3736 80%, #24100d 100%);
+  /* для кнопок с текстом: блик сдвинут к правому краю, под надписью — тёмный шоколад */
+  --grad-txt: linear-gradient(110deg, #24100d 0%, #43201e 40%, #64393a 66%, #9a6c5c 82%, #e6cba4 90%, #a87a68 95%, #4a2424 100%);
   --hi: -7px -7px 16px rgba(255, 255, 255, .95), 7px 7px 18px rgba(163, 163, 184, .45);
   --hi-sm: -4px -4px 10px rgba(255, 255, 255, .95), 4px 4px 11px rgba(163, 163, 184, .45);
   --in: inset 4px 4px 9px rgba(163, 163, 184, .45), inset -4px -4px 9px rgba(255, 255, 255, .9);
@@ -383,7 +386,12 @@ button.item:active { transform: scale(.985); }
 .lnk:active { opacity: .6; }
 .theme-neo .btn:active, .theme-neo .choice:active, .theme-neo button.tile:active, .theme-neo .sheet-x:active, .theme-neo .seg.chips button:active, .theme-neo .card .list .item.tap:active { box-shadow: var(--in); }
 .theme-neo .qbtn:active svg, .theme-neo nav.tabs a:active svg { box-shadow: var(--in); }
-.theme-neo .btn.pri:active, .theme-neo .qbtn.cam:active svg, .theme-neo nav.tabs a[aria-current="page"]:active svg { filter: brightness(.92); box-shadow: inset 3px 3px 8px rgba(60, 30, 90, .35); }
+.theme-neo .btn.pri:active, .theme-neo .qbtn.cam:active svg, .theme-neo nav.tabs a[aria-current="page"]:active svg { filter: brightness(.9); box-shadow: inset 3px 3px 8px rgba(40, 15, 10, .45); }
+
+.theme-neo .btn.pri, .theme-neo .seg button[aria-selected="true"], .theme-neo .seg button[aria-pressed="true"], .theme-neo .card .tiles .tile.hi { color: #fff8ef; text-shadow: 0 1px 2px rgba(30, 10, 8, .45); }
+.theme-neo .card .tiles .tile.hi span { color: rgba(255, 244, 230, .85); }
+
+.theme-neo .btn.pri, .theme-neo .seg button[aria-selected="true"], .theme-neo .seg button[aria-pressed="true"], .theme-neo .seg.chips button[aria-pressed="true"], .theme-neo .card .tiles .tile.hi { background: var(--grad-txt); }
 
 </style>
 </head>
