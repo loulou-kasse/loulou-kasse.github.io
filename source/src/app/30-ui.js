@@ -52,7 +52,7 @@
     drawMain();
   }
   function draw() {
-    document.body.setAttribute('data-view', view); document.body.setAttribute('data-home', homeLayout());
+    document.body.setAttribute('data-view', view);
     drawSync(); drawMain();
     var gate = S.mode === 'login' || S.mode === 'denied' || S.mode === 'auth';
     $('nav.tabs').hidden = gate;
@@ -123,32 +123,6 @@
   }
   /* круглый объёмный логотип, плоские лучи и четыре кнопки быстрого доступа по диагоналям */
   var LOGO_ROUND = 'data:image/jpeg;base64,/*LOGO_ROUND*/';
-  /* четыре дугообразные кнопки вокруг логотипа: дуга — толстая линия со скруглёнными концами */
-  var ARC = [
-    { a: -90, act: 'data-act="j-new" data-type="ausgabe" data-photo="1"', label: 'Фото чека', icon: 'cam', cls: 'cam' },
-    { a: 0, act: 'data-act="j-new" data-type="ausgabe"', label: 'Расход', icon: 'minus' },
-    { a: 90, act: 'data-act="iv-new"', label: 'Счёт', icon: 'inv' },
-    { a: 180, act: 'data-act="j-new" data-type="einnahme"', label: 'Выручка', icon: 'plus' }
-  ];
-  var AR = 148, AH = 30;   /* радиус средней линии дуг и половина их угла */
-  function arcPath(a) {
-    var p = function (d) { var t = d * Math.PI / 180; return (180 + AR * Math.cos(t)).toFixed(1) + ' ' + (180 + AR * Math.sin(t)).toFixed(1); };
-    return 'M' + p(a - AH) + ' A' + AR + ' ' + AR + ' 0 0 1 ' + p(a + AH);
-  }
-  function hero() {
-    var segs = ARC.map(function (x) {
-      var t = x.a * Math.PI / 180, cx = 180 + AR * Math.cos(t), cy = 180 + AR * Math.sin(t), L = x.label.toUpperCase(), ix, iy, tx, ty, anc;
-      if (x.a === -90 || x.a === 90) {          /* сверху и снизу: значок и подпись в строку */
-        var w = 18 + 6 + L.length * 6.3, x0 = cx - w / 2; ix = x0; iy = cy - 9; tx = x0 + 24; ty = cy + 3.5; anc = 'start';
-      } else { ix = cx - 9; iy = cy - 17; tx = cx; ty = cy + 14; anc = 'middle'; }   /* слева и справа: значок над подписью */
-      var ic = QI[x.icon].replace('<svg viewBox="0 0 24 24">', '<svg x="' + ix.toFixed(1) + '" y="' + iy.toFixed(1) + '" width="18" height="18" viewBox="0 0 24 24" class="ic">');
-      return '<g class="seg' + (x.cls ? ' ' + x.cls : '') + '" ' + x.act + ' role="button" tabindex="0" aria-label="' + x.label + '"><path class="arc" d="' + arcPath(x.a) + '"/>' + ic +
-        '<text x="' + tx.toFixed(1) + '" y="' + ty.toFixed(1) + '" text-anchor="' + anc + '">' + L + '</text></g>';
-    }).join('');
-    return '<div class="hero"><svg class="arcs" viewBox="0 0 360 360"><defs><linearGradient id="lgrad" gradientUnits="userSpaceOnUse" x1="100" y1="0" x2="260" y2="60">' +
-      '<stop offset="0" stop-color="#1f0a08"/><stop offset=".3" stop-color="#4a2222"/><stop offset=".5" stop-color="#7a4b45"/><stop offset=".64" stop-color="#c69b7f"/><stop offset=".7" stop-color="#ead2ab"/><stop offset=".77" stop-color="#a87a68"/><stop offset=".9" stop-color="#5d3736"/><stop offset="1" stop-color="#24100d"/></linearGradient></defs>' + segs + '</svg>' +
-      '<div class="medal" aria-hidden="true"><div class="ring"><img src="' + LOGO_ROUND + '" alt=""></div></div></div>';
-  }
   /* ---------- главная: общие блоки ---------- */
   function homeData() {
     var t = today(), s = S.settings, open = C.openInvoices(S.invoices).sort(function (a, b) { return (a.due || '9') < (b.due || '9') ? -1 : 1; });
@@ -185,15 +159,7 @@
     if (!S.entries.length && !S.invoices.length && S.mode === 'sync') h += '<div class="card"><h3>Перенос из старой версии</h3><p class="hint">«Ещё» → «Резервная копия» → «Восстановление» и выберите файл переноса.</p></div>';
     return h;
   }
-  var HOMES = [['card', 'Карточка'], ['feed', 'Список дел'], ['tiles', 'Плитки'], ['arcs', 'Логотип']];
-  function homeLayout() { try { var v = localStorage.getItem('kasse-home'); return HOMES.some(function (x) { return x[0] === v; }) ? v : 'card'; } catch (e) { return 'card'; } }
-  function vHome() {
-    var D = homeData(), L = homeLayout();
-    if (L === 'feed') return homeFeed(D);
-    if (L === 'tiles') return homeTiles(D);
-    if (L === 'arcs') return hero() + secAttention() + secOpen(D) + secLimits(D, true) + secTail();
-    return homeCard(D);
-  }
+  function vHome() { return homeCard(homeData()); }
   /* А. банковская карточка */
   function homeCard(D) {
     var sm = D.sm, p = D.kv ? Math.max(0, Math.min(100, Math.round(D.pace.month / D.kv * 100))) : 0, over = D.kv && D.pace.month > D.kv;
@@ -202,36 +168,6 @@
       (D.kv ? '<div class="bc-bar' + (over ? ' over' : '') + '"><i style="width:' + p + '%"></i></div><div class="bc-sub">Семейная страховка: ' + esc(limText(D)) + '</div>' : '') + '</div>';
     h += '<div class="qrow"><button class="qb cam" data-act="j-new" data-type="ausgabe" data-photo="1">' + QI.cam + '<span>Фото чека</span></button><button class="qb" data-act="j-new" data-type="ausgabe">' + QI.minus + '<span>Расход</span></button><button class="qb" data-act="j-new" data-type="einnahme">' + QI.plus + '<span>Выручка</span></button><button class="qb" data-act="iv-new">' + QI.inv + '<span>Счёт</span></button></div>';
     return h + secAttention() + secOpen(D) + secLimits(D, false) + secTail();
-  }
-  /* Б. список дел: каждая карточка с кнопкой действия; «+» внизу справа */
-  function homeFeed(D) {
-    var cards = [], st = C.stornoedIds(S.entries), mb = missingBeleg(), t = D.t, pm = C.prevMonth(t.slice(0, 7));
-    D.od.forEach(function (v) { cards.push(['stop', 'Счёт ' + v.no + ' просрочен', ivName(v) + ' · ' + eur(v.total) + ' · срок был ' + C.deDate(v.due), 'Напомнить', 'data-act="iv-remind" data-no="' + esc(v.no) + '"']); });
-    mb.slice(0, 3).forEach(function (e) { cards.push(['warn', 'Нет чека: ' + (e.text || e.party || 'расход'), C.deDate(e.date) + ' · ' + eur(e.amount), 'Добавить', 'data-act="e-open" data-id="' + esc(e.id) + '"']); });
-    if (mb.length > 3) cards.push(['warn', 'Ещё ' + (mb.length - 3) + ' без чека', 'расходы без документа', 'Показать', 'data-act="go-nobeleg"']);
-    D.open.filter(function (v) { return !C.isOverdue(v, t); }).forEach(function (v) { cards.push(['info', 'Ждём оплату: ' + ivName(v), eur(v.total) + (v.due ? ' · до ' + C.deDate(v.due) : ''), 'Оплачено', 'data-act="iv-pay" data-no="' + esc(v.no) + '"']); });
-    attention().forEach(function (a) { if (a[1] === 'go-rec' || a[1] === 'go-nocat' || a[1] === 'go-more' || a[1] === 'bk-open') cards.push([a[0], a[3], a[4], { 'go-rec': 'Сверить', 'go-nocat': 'Разобрать', 'go-more': 'Открыть', 'bk-open': 'Сохранить' }[a[1]], 'data-act="' + a[1] + '" ' + a[2]]); });
-    var h = '<div class="row"><h2>Дела</h2><span class="right pill ' + (cards.length ? 'warn' : 'ok') + '">' + (cards.length || 'нет') + '</span></div>';
-    h += cards.length ? '<div class="feed">' + cards.map(function (c) { return '<div class="fcard f-' + c[0] + '"><i class="dot"></i><span class="main"><b>' + esc(c[1]) + '</b><span class="meta">' + esc(c[2]) + '</span></span><button class="btn sm ' + (c[0] === 'stop' ? 'pri' : '') + '" ' + c[4] + '>' + esc(c[3]) + '</button></div>'; }).join('') + '</div>' :
-      '<div class="card"><p class="allok">' + QI.sprig + 'Всё в порядке: дел нет.</p></div>';
-    var sm = D.sm;
-    h += '<div class="card"><h3>' + D.mon + '</h3><div class="tiles t3"><div class="tile"><span>Выручка</span><b>' + eur(sm.einnahme) + '</b></div><div class="tile"><span>Расходы</span><b>' + eur(sm.ausgabe) + '</b></div><div class="tile hi"><span>Прибыль</span><b>' + eur(sm.gewinn) + '</b></div></div>' + (D.kv ? '<p class="hint">Семейная страховка: ' + esc(limText(D)) + '</p>' : '') + '</div>';
-    h += secTail();
-    h += '<div class="fab" id="fab"><div class="fab-menu"><button data-act="j-new" data-type="ausgabe" data-photo="1">' + QI.cam + '<span>Фото чека</span></button><button data-act="j-new" data-type="ausgabe">' + QI.minus + '<span>Расход</span></button><button data-act="j-new" data-type="einnahme">' + QI.plus + '<span>Выручка</span></button><button data-act="iv-new">' + QI.inv + '<span>Счёт</span></button></div><button class="fab-btn" data-act="fab" aria-label="Добавить">' + QI.plus + '</button></div>';
-    return h;
-  }
-  /* В. четыре плитки: цифра и вход, в углу «+» */
-  function homeTiles(D) {
-    var mb = missingBeleg().length, sm = D.sm;
-    var tile = function (cls, act, label, big, sub, plus) {
-      return '<div class="t4 ' + cls + '"><button class="t4-main" ' + act + '><span>' + label + '</span><b class="num">' + big + '</b><em>' + sub + '</em></button>' + (plus ? '<button class="t4-plus" ' + plus + ' aria-label="Добавить">' + QI.plus + '</button>' : '') + '</div>';
-    };
-    var h = '<div class="t4grid">' +
-      tile(mb ? 'warn' : '', 'data-act="go-nobeleg"', 'Чеки', mb ? String(mb) : '✓', mb ? plural(mb, 'расход', 'расхода', 'расходов') + ' без чека' : 'все на месте', 'data-act="j-new" data-type="ausgabe" data-photo="1"') +
-      tile(D.od.length ? 'warn' : '', 'data-act="go-iv-open"', 'Счета', eur(D.openSum), 'ждём · ' + D.open.length + ' ' + plural(D.open.length, 'счёт', 'счёта', 'счетов') + (D.od.length ? ', просрочено ' + D.od.length : ''), 'data-act="iv-new"') +
-      tile('hi', 'data-act="go-month"', 'Прибыль · ' + D.mon, eur(sm.gewinn), 'выручка ' + eur(sm.einnahme) + ' · расходы ' + eur(sm.ausgabe), 'data-act="j-new" data-type="einnahme"') +
-      tile(D.kv && D.pace.month > D.kv ? 'warn' : '', 'data-act="go-limits"', 'Страховка', D.kv ? eur(Math.max(0, D.kv - D.pace.month)) : '—', D.kv ? 'запас в этом месяце, среднее ' + eur(D.pace.avg) : 'предел не задан', '') + '</div>';
-    return h + secAttention() + '<div id="limits"></div>' + secLimits(D, false) + secTail();
   }
   function plural(n, a, b, c) { var m10 = n % 10, m100 = n % 100; return m10 === 1 && m100 !== 11 ? a : m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14) ? b : c; }
 

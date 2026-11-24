@@ -381,28 +381,6 @@ button.item:active { transform: scale(.985); }
 /* ---------- главная: логотип-медальон с лучами и кнопками быстрого доступа ---------- */
 :root { --grad: linear-gradient(125deg, #1f0a08 0%, #4a2222 26%, #7a4b45 42%, #c69b7f 53%, #ead2ab 58%, #a87a68 64%, #5d3736 80%, #24100d 100%);
   --hi: 0 4px 14px rgba(90, 60, 50, .14); --hi-sm: 0 2px 8px rgba(90, 60, 50, .12); --in: inset 0 2px 6px rgba(90, 60, 50, .18); }
-.hero { position: relative; width: 100%; max-width: 380px; aspect-ratio: 1 / 1; margin: 0 auto; }
-.hero .medal { position: absolute; left: 50%; top: 50%; width: 62%; pointer-events: none; aspect-ratio: 1 / 1; transform: translate(-50%, -50%); border-radius: 50%;
-  background: var(--card); box-shadow: var(--hi-sm), 0 6px 16px rgba(60, 25, 20, .14); padding: 4%; }
-.hero .ring { width: 100%; height: 100%; border-radius: 50%; padding: 3%; background: conic-gradient(from 210deg, #24100d, #5d3736, #c69b7f, #ead2ab, #a87a68, #4a2222, #24100d, #7a4b45, #ead2ab, #5d3736, #24100d);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .35); position: relative; }
-.hero .ring img { width: 100%; height: 100%; border-radius: 50%; display: block; object-fit: cover; background: #fff; box-shadow: inset 0 3px 8px rgba(0, 0, 0, .25); }
-.hero .ring::after { content: ''; position: absolute; inset: 3%; border-radius: 50%; pointer-events: none;
-  background: radial-gradient(circle at 32% 24%, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 42%), radial-gradient(circle at 70% 85%, rgba(60, 25, 20, .12), rgba(60, 25, 20, 0) 50%); }
-.hero .arcs { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.hero .seg { cursor: pointer; outline: none; transform-box: view-box; transform-origin: 180px 180px; transition: transform .09s ease, filter .14s ease; }
-.hero .seg .arc { fill: none; stroke: var(--card); stroke-width: 44; stroke-linecap: round; }
-.hero .seg { filter: drop-shadow(0 1px 1px rgba(255, 255, 255, .9)) drop-shadow(0 2px 5px rgba(140, 125, 135, .22)); }
-.hero .seg .ic { fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.hero .seg text { font: 600 8.5px var(--body); letter-spacing: .05em; fill: var(--ink); }
-.hero .seg.cam .arc { stroke: url(#lgrad); }
-.hero .seg.cam .ic { stroke: #fff8ef; } .hero .seg.cam text { fill: #fff8ef; }
-.hero .seg:active { transform: scale(.97); filter: none; }
-.hero .seg:active .arc { stroke: #dedde6; } .hero .seg.cam:active .arc { stroke: url(#lgrad); }
-.hero .seg:focus-visible .arc { stroke-width: 46; }
-.theme-classic .hero .seg, .theme-boutique .hero .seg { filter: drop-shadow(0 2px 4px rgba(90, 60, 50, .18)); }
-body[data-view="home"][data-home="arcs"] .top a img { visibility: hidden; }
-.fcard .main b { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
 /* ---------- главная А: банковская карточка ---------- */
 .bcard { position: relative; overflow: hidden; border-radius: 24px; padding: 18px 20px 16px; color: #fff8ef; background: var(--grad-txt, var(--grad));
@@ -423,33 +401,3 @@ body[data-view="home"][data-home="arcs"] .top a img { visibility: hidden; }
 .qb:active svg { transform: scale(.92); box-shadow: var(--in); }
 .theme-classic .qb svg, .theme-boutique .qb svg { border: 1px solid var(--line); box-shadow: none; }
 
-/* ---------- главная Б: список дел и кнопка «+» ---------- */
-.feed { display: flex; flex-direction: column; gap: 10px; }
-.fcard { display: flex; align-items: center; gap: 12px; background: var(--card); border-radius: 18px; padding: 12px 12px 12px 14px; box-shadow: var(--hi-sm); }
-.fcard .main { flex: 1; min-width: 0; } .fcard .main b { display: block; } .fcard .meta { display: block; font-size: 13px; color: var(--muted); }
-.fcard .dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; background: #e3a35a; } .fcard.f-stop .dot { background: var(--stop); } .fcard.f-info .dot { background: var(--gold); }
-.fcard .btn { flex: 0 0 auto; }
-.fab { position: fixed; right: max(18px, calc(50% - 282px)); bottom: 112px; z-index: 6; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
-.fab-btn { width: 62px; height: 62px; border-radius: 50%; border: 0; background: var(--grad); box-shadow: 0 8px 20px rgba(50, 20, 15, .35), inset 0 0 0 3px rgba(255, 255, 255, .45); display: flex; align-items: center; justify-content: center; transition: transform .15s; }
-.fab-btn svg { width: 30px; height: 30px; fill: none; stroke: #fff8ef; stroke-width: 1.8; stroke-linecap: round; }
-.fab.open .fab-btn { transform: rotate(45deg); }
-.fab-menu { display: none; flex-direction: column; align-items: flex-end; gap: 8px; }
-.fab.open .fab-menu { display: flex; }
-.fab-menu button { display: flex; align-items: center; gap: 10px; border: 0; background: var(--card); border-radius: 999px; padding: 6px 14px 6px 8px; box-shadow: var(--hi-sm); font-weight: 600; font-size: 14px; color: var(--ink); flex-direction: row-reverse; }
-.fab-menu svg { width: 36px; height: 36px; padding: 8px; border-radius: 50%; background: var(--paper); fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-
-/* ---------- главная В: четыре плитки ---------- */
-.t4grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.t4 { position: relative; background: var(--card); border-radius: 20px; box-shadow: var(--hi); min-height: 128px; }
-.t4-main { width: 100%; height: 100%; border: 0; background: none; text-align: left; padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 4px; color: var(--ink); border-radius: 20px; }
-.t4-main span { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-.t4-main b { font: 700 24px/1.15 var(--body); margin-top: 6px; }
-.t4-main em { font-style: normal; font-size: 12px; color: var(--muted); line-height: 1.3; padding-right: 30px; }
-.t4.hi { background: var(--grad-txt, var(--grad)); } .t4.hi .t4-main, .t4.hi .t4-main span, .t4.hi .t4-main em { color: #fff8ef; }
-.t4.warn .t4-main b { color: var(--stop); }
-.t4-plus { position: absolute; right: 10px; bottom: 10px; width: 34px; height: 34px; border-radius: 50%; border: 0; background: var(--paper); box-shadow: var(--hi-sm); display: flex; align-items: center; justify-content: center; padding: 0; }
-.t4-plus svg { width: 26px; height: 26px; fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; }
-.t4-plus svg circle { display: none; }
-.t4.hi .t4-plus { background: rgba(255, 255, 255, .2); box-shadow: none; } .t4.hi .t4-plus svg { stroke: #fff8ef; }
-.t4-main:active { transform: scale(.98); } .t4-plus:active { box-shadow: var(--in); }
-.fcard .main b { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
