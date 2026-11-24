@@ -24,7 +24,10 @@
     var th = theme(), ac = accent()[0];
     h += '<h3>Оформление</h3><div class="card"><p class="hint">Цвет кнопок и акцентов</p><div class="swatches">' + ACCENTS.map(function (x) { return '<button class="sw" data-act="accent" data-k="' + x[0] + '" aria-pressed="' + (ac === x[0]) + '" aria-label="' + x[1] + '" title="' + x[1] + '" style="background:' + (gradOn() ? 'linear-gradient(135deg,' + mixHex(x[2], '#ffffff', 0.25) + ',' + x[2] + ',' + mixHex(x[2], '#000000', 0.28) + ')' : x[2]) + '"></button>'; }).join('') + '</div>' +
       '<label class="switch"><input type="checkbox" id="grad-on"' + (gradOn() ? ' checked' : '') + '><span>Градиент</span></label>' +
-      '<p class="hint">Стиль</p><div class="seg chips">' + THEMES.map(function (x) { return '<button data-act="theme" data-t="' + x[0] + '" aria-pressed="' + (th === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div><p class="hint">Запоминается на этом устройстве.</p></div>';
+      '<p class="hint">Тема</p><div class="seg chips">' + MODES.map(function (x) { return '<button data-act="mode" data-m="' + x[0] + '" aria-pressed="' + (mode() === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div>' +
+      (isDark() ? '<p class="hint">В тёмной теме используется стиль «Объёмный».</p>' :
+      '<p class="hint">Стиль</p><div class="seg chips">' + THEMES.map(function (x) { return '<button data-act="theme" data-t="' + x[0] + '" aria-pressed="' + (th === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div>') +
+      '<p class="hint">Запоминается на этом устройстве.</p></div>';
     if (S.user) h += '<p class="hint">Вход: ' + esc(S.user.email || '') + ' · Google Drive ' + (B.driveReady() ? 'подключён' : 'не подключён') + ' <button class="lnk" data-act="logout">Выйти</button></p>';
     return h;
   }

@@ -15,12 +15,39 @@
     };
     try { navigator.clipboard.writeText(txt).then(done, fallback); } catch (e) { fallback(); }
   }
+  /* «Назад» (жест от края экрана или кнопка телефона) ведёт себя как в приложении:
+     закрывает открытое окно, из раздела возвращает на главную, с главной — выход.
+     В истории браузера не больше трёх шагов: главная → раздел → окно. */
+  var VIEWS = ['home', 'guide', 'invoices', 'journal', 'more'], navSheet = false, navSkip = 0, navQueue = null;
+  function goView(v) {
+    if (VIEWS.indexOf(v) < 0) v = 'home';
+    if (navSkip) { navQueue = v; return; }
+    if (sheetOpen()) closeSheet();
+    if (navSkip) { navQueue = v; return; }
+    if (v === view) { draw(); return; }
+    var d = (history.state && history.state.d) || 0;
+    if (v === 'home') { if (d === 1) { history.back(); return; } history.replaceState({ d: 0 }, '', '#home'); }
+    else if (d === 1) history.replaceState({ d: 1 }, '', '#' + v);
+    else history.pushState({ d: 1 }, '', '#' + v);
+    route();
+  }
+  function navInit() {
+    var h = (location.hash || '#home').slice(1);
+    history.replaceState({ d: 0 }, '', '#home');
+    if (h !== 'home' && VIEWS.indexOf(h) >= 0) history.pushState({ d: 1 }, '', '#' + h);
+  }
+  function onPop() {
+    if (navSkip) { navSkip = 0; var q = navQueue; navQueue = null; if (q) goView(q); return; }
+    if (sheetOpen()) { navSheet = false; closeSheet(); return; }
+    route();
+  }
   function openSheet(html) {
     var bgEl = $('#sheet');
+    if (!navSheet) { history.pushState({ d: (history.state && history.state.d) || 0, s: 1 }, '', location.hash || '#home'); navSheet = true; }
     bgEl.innerHTML = '<div class="sheet" role="dialog" aria-modal="true"><div class="sheet-bar"><button type="button" class="sheet-x" data-act="sheet-close" aria-label="Закрыть окно">×</button></div><div class="sheet-body">' + html + '</div></div>';
     bgEl.hidden = false; document.body.classList.add('noscroll'); bgEl.querySelector('.sheet').scrollTop = 0;
   }
-  function closeSheet() { var bgEl = $('#sheet'); bgEl.hidden = true; bgEl.innerHTML = ''; document.body.classList.remove('noscroll'); if (dirty) draw(); }
+  function closeSheet() { if (navSheet) { navSheet = false; navSkip = 1; history.back(); } var bgEl = $('#sheet'); bgEl.hidden = true; bgEl.innerHTML = ''; document.body.classList.remove('noscroll'); if (dirty) draw(); }
   function sheetOpen() { return !$('#sheet').hidden; }
   function fld(id, label, type, v, extra) {
     return '<label class="f" for="' + id + '">' + esc(label) + '<input id="' + id + '" type="' + (type || 'text') + '" value="' + esc(v == null ? '' : v) + '" ' + (extra || '') + '></label>';
@@ -39,7 +66,7 @@
   }
   function route() {
     var h = (location.hash || '#home').slice(1);
-    view = ['home', 'guide', 'invoices', 'journal', 'more'].indexOf(h) >= 0 ? h : 'home';
+    view = VIEWS.indexOf(h) >= 0 ? h : 'home';
     if (view === 'guide' && g.step === 0 && !g.sit && g.sit !== 0) g = { step: 0, sit: null, opt: null, vals: {} };
     draw();
   }
@@ -71,23 +98,9 @@
     m.innerHTML = ({ home: vHome, guide: vGuide, invoices: vInvoices, journal: vJournal, more: vMore })[view]();
   }
 
-  /* ---------- оформление (запоминается на устройстве) ---------- */
-  var THEMES = [['neo', 'Объёмный'], ['floral', 'Цветочный'], ['paper', 'Мягкий'], ['boutique', 'Бутик'], ['classic', 'Строгий']];
-  function theme() { try { return localStorage.getItem('kasse-theme') || 'neo'; } catch (e) { return 'neo'; } }
-  /* цвет акцента (кнопки, карточка, активные элементы) и градиент — запоминаются на устройстве */
-  var ACCENTS = [['rose', 'Пыльная роза', '#a85d6a'], ['plum', 'Слива', '#6e3d6b'], ['lav', 'Лаванда', '#6f5fb0'], ['sea', 'Морская волна', '#2f6e7c'],
-    ['sage', 'Шалфей', '#4f7a5d'], ['terra', 'Терракота', '#a4553c'], ['choc', 'Шоколад', '#4a2a26'], ['graph', 'Графит', '#3a3946']];
-  function mixHex(h, t, k) { return '#' + [1, 3, 5].map(function (i) { var a = parseInt(h.substr(i, 2), 16), b = parseInt(t.substr(i, 2), 16); return ('0' + Math.round(a * (1 - k) + b * k).toString(16)).slice(-2); }).join(''); }
-  function accent() { var k; try { k = localStorage.getItem('kasse-accent'); } catch (e) {} return ACCENTS.find(function (a) { return a[0] === k; }) || ACCENTS[0]; }
-  function gradOn() { try { return localStorage.getItem('kasse-grad') !== '0'; } catch (e) { return true; } }
-  function applyAccent() {
-    var c = accent()[2], light = mixHex(c, '#ffffff', 0.25), dark = mixHex(c, '#000000', 0.28), st = document.body.style, g = gradOn();
-    st.setProperty('--grad', g ? 'linear-gradient(135deg, ' + light + ' 0%, ' + c + ' 50%, ' + dark + ' 100%)' : 'linear-gradient(' + c + ', ' + c + ')');
-    st.setProperty('--grad-txt', g ? 'linear-gradient(135deg, ' + c + ' 0%, ' + dark + ' 100%)' : 'linear-gradient(' + c + ', ' + c + ')');
-    st.setProperty('--accent', c); st.setProperty('--gold', mixHex(c, '#ffffff', 0.55));
-  }
-  function applyTheme() { var t = theme(); document.body.className = document.body.className.replace(/\btheme-\w+/g, '').trim() + ' theme-' + t; applyAccent(); }
+  /* оформление: src/theme.js (выполняется в <head> до первой отрисовки) */
   function setTheme(t) { try { localStorage.setItem('kasse-theme', t); } catch (e) {} applyTheme(); }
+  if (darkMq) { var onMq = function () { if (mode() === 'auto') { applyTheme(); drawMain(); } }; if (darkMq.addEventListener) darkMq.addEventListener('change', onMq); else if (darkMq.addListener) darkMq.addListener(onMq); }
 
   /* ---------- вход ---------- */
   function vLogin() {

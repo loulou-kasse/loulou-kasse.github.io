@@ -303,7 +303,7 @@ table.euer tr.warnr td { color: var(--warn); }
   --hi-sm: -4px -4px 10px rgba(255, 255, 255, .95), 4px 4px 11px rgba(163, 163, 184, .45);
   --in: inset 4px 4px 9px rgba(163, 163, 184, .45), inset -4px -4px 9px rgba(255, 255, 255, .9);
   --ok: #3f8f74; --ok-bg: #dcefe7; --warn: #b9772a; --warn-bg: #f4e6d3; --stop: #cf4f6e; --stop-bg: #f6dde4; }
-.theme-neo body, body.theme-neo { background: var(--paper); }
+.theme-neo body { background: var(--paper); }
 .theme-neo .top { background: var(--paper); border-bottom: 0; box-shadow: none; padding-top: 12px; }
 .theme-neo .top img { mix-blend-mode: multiply; }
 .theme-neo h2 { font: 700 24px/1.15 var(--body); text-transform: uppercase; letter-spacing: .06em; }
@@ -427,7 +427,59 @@ button.item:active { transform: scale(.985); }
 .switch input::after { content: ''; position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .25); transition: left .15s; }
 .switch input:checked { background: var(--accent); } .switch input:checked::after { left: 23px; }
 
+/* ================= тёмная тема (на основе «Объёмного») ================= */
+.theme-dark { --paper: #22212a; --card: #22212a; --ink: #ecebf2; --muted: #9d9bab; --line: #363542;
+  --hi: -6px -6px 14px rgba(255, 255, 255, .045), 7px 7px 16px rgba(0, 0, 0, .55);
+  --hi-sm: -3px -3px 9px rgba(255, 255, 255, .04), 4px 4px 10px rgba(0, 0, 0, .5);
+  --in: inset 4px 4px 9px rgba(0, 0, 0, .5), inset -3px -3px 8px rgba(255, 255, 255, .04);
+  --ok: #6cc6a2; --ok-bg: #1d3a2f; --warn: #e8ac62; --warn-bg: #3c2e1b; --stop: #f27b95; --stop-bg: #40222a;
+  color-scheme: dark; }
+/* логотип: тёмные буквы на белом → светлые буквы без фона */
+.theme-dark .top img { mix-blend-mode: screen; filter: invert(1) hue-rotate(180deg) brightness(1.05); }
+.theme-dark .toast { background: #ecebf2; color: #1f1e26; }
+.theme-dark .toast .lnk { color: #1f1e26; }
+.theme-dark .paperwrap { background: #18171e; }
+.theme-dark .bcard { box-shadow: 0 10px 26px rgba(0, 0, 0, .5); }
+.theme-dark .att .dot::after { background: #e8ac62; }
+.theme-dark .att .att-stop .dot::after { background: #f27b95; }
+.theme-dark .switch input::after { background: #f2f1f6; }
+.theme-dark .btn.ghost { color: var(--muted); }
+.theme-dark .btn.danger { color: var(--stop); }
+.theme-dark .sw[aria-pressed="true"]::after { border-color: #f2f1f6; }
+.theme-dark .qb.cam svg, .theme-dark nav.tabs a[aria-current="page"] svg { box-shadow: var(--hi), inset 0 0 0 3px rgba(255, 255, 255, .25); }
+.theme-dark ::placeholder { color: #6f6d7d; }
+
 </style>
+<script>
+/* Оформление LOU LOU Kasse. Выполняется в <head>, до первой отрисовки, чтобы страница
+   ни на миг не показывалась в «голом» стиле. Классы темы — на <html>, цвета — переменными CSS. */
+var THEMES = [['neo', 'Объёмный'], ['floral', 'Цветочный'], ['paper', 'Мягкий'], ['boutique', 'Бутик'], ['classic', 'Строгий']];
+var MODES = [['light', 'Светлая'], ['dark', 'Тёмная'], ['auto', 'Как в телефоне']];
+var ACCENTS = [['rose', 'Пыльная роза', '#a85d6a'], ['plum', 'Слива', '#6e3d6b'], ['lav', 'Лаванда', '#6f5fb0'], ['sea', 'Морская волна', '#2f6e7c'],
+  ['sage', 'Шалфей', '#4f7a5d'], ['terra', 'Терракота', '#a4553c'], ['choc', 'Шоколад', '#4a2a26'], ['graph', 'Графит', '#3a3946']];
+function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function theme() { var t = lsGet('kasse-theme'); return THEMES.some(function (x) { return x[0] === t; }) ? t : 'neo'; }
+function mode() { var m = lsGet('kasse-mode'); return MODES.some(function (x) { return x[0] === m; }) ? m : 'light'; }
+var darkMq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+function isDark() { var m = mode(); return m === 'dark' || (m === 'auto' && !!(darkMq && darkMq.matches)); }
+function mixHex(h, t, k) { return '#' + [1, 3, 5].map(function (i) { var a = parseInt(h.substr(i, 2), 16), b = parseInt(t.substr(i, 2), 16); return ('0' + Math.round(a * (1 - k) + b * k).toString(16)).slice(-2); }).join(''); }
+function accent() { var k = lsGet('kasse-accent'); return ACCENTS.find(function (a) { return a[0] === k; }) || ACCENTS[0]; }
+function gradOn() { return lsGet('kasse-grad') !== '0'; }
+function applyAccent() {
+  var c = accent()[2], light = mixHex(c, '#ffffff', 0.25), dark = mixHex(c, '#000000', 0.28), st = document.documentElement.style, g = gradOn();
+  st.setProperty('--grad', g ? 'linear-gradient(135deg, ' + light + ' 0%, ' + c + ' 50%, ' + dark + ' 100%)' : 'linear-gradient(' + c + ', ' + c + ')');
+  st.setProperty('--grad-txt', g ? 'linear-gradient(135deg, ' + c + ' 0%, ' + dark + ' 100%)' : 'linear-gradient(' + c + ', ' + c + ')');
+  st.setProperty('--accent', isDark() ? mixHex(c, '#ffffff', 0.42) : c); st.setProperty('--gold', mixHex(c, '#ffffff', 0.55));
+}
+function applyTheme() {
+  var d = isDark(), t = d ? 'neo theme-dark' : theme(), r = document.documentElement;
+  r.className = (r.className.replace(/\btheme-\w+/g, '').replace(/\s+/g, ' ').trim() + ' theme-' + t).trim();
+  var mt = document.querySelector('meta[name="theme-color"]'); if (mt) mt.setAttribute('content', d ? '#22212a' : (t === 'neo' ? '#e9e9ef' : '#ffffff'));
+  applyAccent();
+}
+applyTheme();
+
+</script>
 </head>
 <body>
 <div class="app">
@@ -1278,12 +1330,39 @@ button.item:active { transform: scale(.985); }
     };
     try { navigator.clipboard.writeText(txt).then(done, fallback); } catch (e) { fallback(); }
   }
+  /* «Назад» (жест от края экрана или кнопка телефона) ведёт себя как в приложении:
+     закрывает открытое окно, из раздела возвращает на главную, с главной — выход.
+     В истории браузера не больше трёх шагов: главная → раздел → окно. */
+  var VIEWS = ['home', 'guide', 'invoices', 'journal', 'more'], navSheet = false, navSkip = 0, navQueue = null;
+  function goView(v) {
+    if (VIEWS.indexOf(v) < 0) v = 'home';
+    if (navSkip) { navQueue = v; return; }
+    if (sheetOpen()) closeSheet();
+    if (navSkip) { navQueue = v; return; }
+    if (v === view) { draw(); return; }
+    var d = (history.state && history.state.d) || 0;
+    if (v === 'home') { if (d === 1) { history.back(); return; } history.replaceState({ d: 0 }, '', '#home'); }
+    else if (d === 1) history.replaceState({ d: 1 }, '', '#' + v);
+    else history.pushState({ d: 1 }, '', '#' + v);
+    route();
+  }
+  function navInit() {
+    var h = (location.hash || '#home').slice(1);
+    history.replaceState({ d: 0 }, '', '#home');
+    if (h !== 'home' && VIEWS.indexOf(h) >= 0) history.pushState({ d: 1 }, '', '#' + h);
+  }
+  function onPop() {
+    if (navSkip) { navSkip = 0; var q = navQueue; navQueue = null; if (q) goView(q); return; }
+    if (sheetOpen()) { navSheet = false; closeSheet(); return; }
+    route();
+  }
   function openSheet(html) {
     var bgEl = $('#sheet');
+    if (!navSheet) { history.pushState({ d: (history.state && history.state.d) || 0, s: 1 }, '', location.hash || '#home'); navSheet = true; }
     bgEl.innerHTML = '<div class="sheet" role="dialog" aria-modal="true"><div class="sheet-bar"><button type="button" class="sheet-x" data-act="sheet-close" aria-label="Закрыть окно">×</button></div><div class="sheet-body">' + html + '</div></div>';
     bgEl.hidden = false; document.body.classList.add('noscroll'); bgEl.querySelector('.sheet').scrollTop = 0;
   }
-  function closeSheet() { var bgEl = $('#sheet'); bgEl.hidden = true; bgEl.innerHTML = ''; document.body.classList.remove('noscroll'); if (dirty) draw(); }
+  function closeSheet() { if (navSheet) { navSheet = false; navSkip = 1; history.back(); } var bgEl = $('#sheet'); bgEl.hidden = true; bgEl.innerHTML = ''; document.body.classList.remove('noscroll'); if (dirty) draw(); }
   function sheetOpen() { return !$('#sheet').hidden; }
   function fld(id, label, type, v, extra) {
     return '<label class="f" for="' + id + '">' + esc(label) + '<input id="' + id + '" type="' + (type || 'text') + '" value="' + esc(v == null ? '' : v) + '" ' + (extra || '') + '></label>';
@@ -1302,7 +1381,7 @@ button.item:active { transform: scale(.985); }
   }
   function route() {
     var h = (location.hash || '#home').slice(1);
-    view = ['home', 'guide', 'invoices', 'journal', 'more'].indexOf(h) >= 0 ? h : 'home';
+    view = VIEWS.indexOf(h) >= 0 ? h : 'home';
     if (view === 'guide' && g.step === 0 && !g.sit && g.sit !== 0) g = { step: 0, sit: null, opt: null, vals: {} };
     draw();
   }
@@ -1334,23 +1413,9 @@ button.item:active { transform: scale(.985); }
     m.innerHTML = ({ home: vHome, guide: vGuide, invoices: vInvoices, journal: vJournal, more: vMore })[view]();
   }
 
-  /* ---------- оформление (запоминается на устройстве) ---------- */
-  var THEMES = [['neo', 'Объёмный'], ['floral', 'Цветочный'], ['paper', 'Мягкий'], ['boutique', 'Бутик'], ['classic', 'Строгий']];
-  function theme() { try { return localStorage.getItem('kasse-theme') || 'neo'; } catch (e) { return 'neo'; } }
-  /* цвет акцента (кнопки, карточка, активные элементы) и градиент — запоминаются на устройстве */
-  var ACCENTS = [['rose', 'Пыльная роза', '#a85d6a'], ['plum', 'Слива', '#6e3d6b'], ['lav', 'Лаванда', '#6f5fb0'], ['sea', 'Морская волна', '#2f6e7c'],
-    ['sage', 'Шалфей', '#4f7a5d'], ['terra', 'Терракота', '#a4553c'], ['choc', 'Шоколад', '#4a2a26'], ['graph', 'Графит', '#3a3946']];
-  function mixHex(h, t, k) { return '#' + [1, 3, 5].map(function (i) { var a = parseInt(h.substr(i, 2), 16), b = parseInt(t.substr(i, 2), 16); return ('0' + Math.round(a * (1 - k) + b * k).toString(16)).slice(-2); }).join(''); }
-  function accent() { var k; try { k = localStorage.getItem('kasse-accent'); } catch (e) {} return ACCENTS.find(function (a) { return a[0] === k; }) || ACCENTS[0]; }
-  function gradOn() { try { return localStorage.getItem('kasse-grad') !== '0'; } catch (e) { return true; } }
-  function applyAccent() {
-    var c = accent()[2], light = mixHex(c, '#ffffff', 0.25), dark = mixHex(c, '#000000', 0.28), st = document.body.style, g = gradOn();
-    st.setProperty('--grad', g ? 'linear-gradient(135deg, ' + light + ' 0%, ' + c + ' 50%, ' + dark + ' 100%)' : 'linear-gradient(' + c + ', ' + c + ')');
-    st.setProperty('--grad-txt', g ? 'linear-gradient(135deg, ' + c + ' 0%, ' + dark + ' 100%)' : 'linear-gradient(' + c + ', ' + c + ')');
-    st.setProperty('--accent', c); st.setProperty('--gold', mixHex(c, '#ffffff', 0.55));
-  }
-  function applyTheme() { var t = theme(); document.body.className = document.body.className.replace(/\btheme-\w+/g, '').trim() + ' theme-' + t; applyAccent(); }
+  /* оформление: src/theme.js (выполняется в <head> до первой отрисовки) */
   function setTheme(t) { try { localStorage.setItem('kasse-theme', t); } catch (e) {} applyTheme(); }
+  if (darkMq) { var onMq = function () { if (mode() === 'auto') { applyTheme(); drawMain(); } }; if (darkMq.addEventListener) darkMq.addEventListener('change', onMq); else if (darkMq.addListener) darkMq.addListener(onMq); }
 
   /* ---------- вход ---------- */
   function vLogin() {
@@ -2116,7 +2181,7 @@ button.item:active { transform: scale(.985); }
         if ($('#e-savetpl') && $('#e-savetpl').checked) putTemplate({ id: newId('t'), name: e.text, type: e.type, way: e.way, amount: e.amount, text: e.text, party: e.party, cat: e.cat || '', noBeleg: !!e.noBeleg });
         month = date.slice(0, 7); closeSheet(); toast('Записано');
         if (entryPre.fromBank) setTimeout(reopenBank, 300);
-        else if (view !== 'journal' && view !== 'home') location.hash = '#journal'; else drawMain();
+        else if (view !== 'journal' && view !== 'home') goView('journal'); else drawMain();
         if (file) {
           toast('Запись сохранена, загружаю документ в Drive…');
           attachBeleg(e, file).then(function () { toast('Документ сохранён в Drive: Belege › ' + date.slice(0, 7)); }, function (er) { toast('Документ не загружен: ' + (er && er.message || er) + '. Запись помечена «без чека».'); });
@@ -2183,7 +2248,10 @@ button.item:active { transform: scale(.985); }
     var th = theme(), ac = accent()[0];
     h += '<h3>Оформление</h3><div class="card"><p class="hint">Цвет кнопок и акцентов</p><div class="swatches">' + ACCENTS.map(function (x) { return '<button class="sw" data-act="accent" data-k="' + x[0] + '" aria-pressed="' + (ac === x[0]) + '" aria-label="' + x[1] + '" title="' + x[1] + '" style="background:' + (gradOn() ? 'linear-gradient(135deg,' + mixHex(x[2], '#ffffff', 0.25) + ',' + x[2] + ',' + mixHex(x[2], '#000000', 0.28) + ')' : x[2]) + '"></button>'; }).join('') + '</div>' +
       '<label class="switch"><input type="checkbox" id="grad-on"' + (gradOn() ? ' checked' : '') + '><span>Градиент</span></label>' +
-      '<p class="hint">Стиль</p><div class="seg chips">' + THEMES.map(function (x) { return '<button data-act="theme" data-t="' + x[0] + '" aria-pressed="' + (th === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div><p class="hint">Запоминается на этом устройстве.</p></div>';
+      '<p class="hint">Тема</p><div class="seg chips">' + MODES.map(function (x) { return '<button data-act="mode" data-m="' + x[0] + '" aria-pressed="' + (mode() === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div>' +
+      (isDark() ? '<p class="hint">В тёмной теме используется стиль «Объёмный».</p>' :
+      '<p class="hint">Стиль</p><div class="seg chips">' + THEMES.map(function (x) { return '<button data-act="theme" data-t="' + x[0] + '" aria-pressed="' + (th === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div>') +
+      '<p class="hint">Запоминается на этом устройстве.</p></div>';
     if (S.user) h += '<p class="hint">Вход: ' + esc(S.user.email || '') + ' · Google Drive ' + (B.driveReady() ? 'подключён' : 'не подключён') + ' <button class="lnk" data-act="logout">Выйти</button></p>';
     return h;
   }
@@ -2401,6 +2469,7 @@ button.item:active { transform: scale(.985); }
 
   /* ---------- события ---------- */
   document.addEventListener('click', function (ev) {
+    var ln = ev.target.closest('a[href^="#"]'); if (ln && !ln.dataset.act) { ev.preventDefault(); goView(ln.getAttribute('href').slice(1)); return; }
     var b = ev.target.closest('[data-act]'); if (!b) return;   /* касание вне полей окно не закрывает */
     var a = b.dataset.act, i = parseInt(b.dataset.i, 10), no = b.dataset.no, id = b.dataset.id, o, e;
     if (a === 'login') { var le = $('#login-err'); B.signIn().catch(function (er) { if (le) le.textContent = B.authErr(er); }); }
@@ -2412,15 +2481,16 @@ button.item:active { transform: scale(.985); }
     else if (a === 'g-copy') copyText($('code[data-tpl="' + i + '"]').textContent);
     else if (a === 'g-journal') { o = GUIDE[g.sit].opts[g.opt]; sheetEntry({ type: o.journal.type, way: o.journal.way, text: o.journal.type === 'ausgabe' ? '' : C.fillTpl(o.texts[0][1], guideVals()).replace(/…/g, '').trim() }); }
     else if (a === 'sheet-close') closeSheet();
-    else if (a === 'go-iv-open') { ivf = 'open'; location.hash = '#invoices'; }
-    else if (a === 'go-rec') { month = b.dataset.m; jf = { q: '', kind: 'all' }; if (view === 'journal') drawMain(); else location.hash = '#journal'; }
-    else if (a === 'go-more') location.hash = '#more';
-    else if (a === 'go-month') { month = today().slice(0, 7); jf = { q: '', kind: 'all' }; location.hash = '#journal'; }
+    else if (a === 'go-iv-open') { ivf = 'open'; goView('invoices'); }
+    else if (a === 'go-rec') { month = b.dataset.m; jf = { q: '', kind: 'all' }; if (view === 'journal') drawMain(); else goView('journal'); }
+    else if (a === 'go-more') goView('more');
+    else if (a === 'go-month') { month = today().slice(0, 7); jf = { q: '', kind: 'all' }; goView('journal'); }
 
     else if (a === 'theme') { setTheme(b.dataset.t); drawMain(); }
+    else if (a === 'mode') { try { localStorage.setItem('kasse-mode', b.dataset.m); } catch (e) {} applyTheme(); drawMain(); }
     else if (a === 'accent') { try { localStorage.setItem('kasse-accent', b.dataset.k); } catch (e) {} applyAccent(); drawMain(); }
-    else if (a === 'go-nobeleg') { jf = { q: '', kind: 'nobeleg' }; month = 'all'; closeSheet(); if (view === 'journal') drawMain(); else location.hash = '#journal'; }
-    else if (a === 'go-nocat') { jf = { q: '', kind: 'nocat' }; month = 'all'; closeSheet(); if (view === 'journal') drawMain(); else location.hash = '#journal'; }
+    else if (a === 'go-nobeleg') { jf = { q: '', kind: 'nobeleg' }; month = 'all'; closeSheet(); if (view === 'journal') drawMain(); else goView('journal'); }
+    else if (a === 'go-nocat') { jf = { q: '', kind: 'nocat' }; month = 'all'; closeSheet(); if (view === 'journal') drawMain(); else goView('journal'); }
     /* счета */
     else if (a === 'ivf') { ivf = b.dataset.f; drawMain(); }
     else if (a === 'iv-new') sheetInvoice();
@@ -2530,7 +2600,9 @@ button.item:active { transform: scale(.985); }
   });
   document.addEventListener('focusout', function () { setTimeout(function () { if (dirty && !sheetOpen()) { var a = document.activeElement; if (!(a && $('#main').contains(a) && /INPUT|TEXTAREA|SELECT/.test(a.tagName))) drawMain(); } }, 60); });
   document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && sheetOpen()) closeSheet(); });
-  window.addEventListener('hashchange', route);
+  window.addEventListener('popstate', onPop);
+  window.addEventListener('hashchange', route);   /* ручной ввод адреса */
+  navInit();
   document.addEventListener('touchstart', function () {}, { passive: true });   /* включает :active (эффект нажатия) на сенсорных экранах */
   if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(function () {});
   applyTheme();

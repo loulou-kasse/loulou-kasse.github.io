@@ -137,7 +137,7 @@
         if ($('#e-savetpl') && $('#e-savetpl').checked) putTemplate({ id: newId('t'), name: e.text, type: e.type, way: e.way, amount: e.amount, text: e.text, party: e.party, cat: e.cat || '', noBeleg: !!e.noBeleg });
         month = date.slice(0, 7); closeSheet(); toast('Записано');
         if (entryPre.fromBank) setTimeout(reopenBank, 300);
-        else if (view !== 'journal' && view !== 'home') location.hash = '#journal'; else drawMain();
+        else if (view !== 'journal' && view !== 'home') goView('journal'); else drawMain();
         if (file) {
           toast('Запись сохранена, загружаю документ в Drive…');
           attachBeleg(e, file).then(function () { toast('Документ сохранён в Drive: Belege › ' + date.slice(0, 7)); }, function (er) { toast('Документ не загружен: ' + (er && er.message || er) + '. Запись помечена «без чека».'); });

@@ -1,6 +1,7 @@
 
   /* ---------- события ---------- */
   document.addEventListener('click', function (ev) {
+    var ln = ev.target.closest('a[href^="#"]'); if (ln && !ln.dataset.act) { ev.preventDefault(); goView(ln.getAttribute('href').slice(1)); return; }
     var b = ev.target.closest('[data-act]'); if (!b) return;   /* касание вне полей окно не закрывает */
     var a = b.dataset.act, i = parseInt(b.dataset.i, 10), no = b.dataset.no, id = b.dataset.id, o, e;
     if (a === 'login') { var le = $('#login-err'); B.signIn().catch(function (er) { if (le) le.textContent = B.authErr(er); }); }
@@ -12,15 +13,16 @@
     else if (a === 'g-copy') copyText($('code[data-tpl="' + i + '"]').textContent);
     else if (a === 'g-journal') { o = GUIDE[g.sit].opts[g.opt]; sheetEntry({ type: o.journal.type, way: o.journal.way, text: o.journal.type === 'ausgabe' ? '' : C.fillTpl(o.texts[0][1], guideVals()).replace(/…/g, '').trim() }); }
     else if (a === 'sheet-close') closeSheet();
-    else if (a === 'go-iv-open') { ivf = 'open'; location.hash = '#invoices'; }
-    else if (a === 'go-rec') { month = b.dataset.m; jf = { q: '', kind: 'all' }; if (view === 'journal') drawMain(); else location.hash = '#journal'; }
-    else if (a === 'go-more') location.hash = '#more';
-    else if (a === 'go-month') { month = today().slice(0, 7); jf = { q: '', kind: 'all' }; location.hash = '#journal'; }
+    else if (a === 'go-iv-open') { ivf = 'open'; goView('invoices'); }
+    else if (a === 'go-rec') { month = b.dataset.m; jf = { q: '', kind: 'all' }; if (view === 'journal') drawMain(); else goView('journal'); }
+    else if (a === 'go-more') goView('more');
+    else if (a === 'go-month') { month = today().slice(0, 7); jf = { q: '', kind: 'all' }; goView('journal'); }
 
     else if (a === 'theme') { setTheme(b.dataset.t); drawMain(); }
+    else if (a === 'mode') { try { localStorage.setItem('kasse-mode', b.dataset.m); } catch (e) {} applyTheme(); drawMain(); }
     else if (a === 'accent') { try { localStorage.setItem('kasse-accent', b.dataset.k); } catch (e) {} applyAccent(); drawMain(); }
-    else if (a === 'go-nobeleg') { jf = { q: '', kind: 'nobeleg' }; month = 'all'; closeSheet(); if (view === 'journal') drawMain(); else location.hash = '#journal'; }
-    else if (a === 'go-nocat') { jf = { q: '', kind: 'nocat' }; month = 'all'; closeSheet(); if (view === 'journal') drawMain(); else location.hash = '#journal'; }
+    else if (a === 'go-nobeleg') { jf = { q: '', kind: 'nobeleg' }; month = 'all'; closeSheet(); if (view === 'journal') drawMain(); else goView('journal'); }
+    else if (a === 'go-nocat') { jf = { q: '', kind: 'nocat' }; month = 'all'; closeSheet(); if (view === 'journal') drawMain(); else goView('journal'); }
     /* счета */
     else if (a === 'ivf') { ivf = b.dataset.f; drawMain(); }
     else if (a === 'iv-new') sheetInvoice();
@@ -130,7 +132,9 @@
   });
   document.addEventListener('focusout', function () { setTimeout(function () { if (dirty && !sheetOpen()) { var a = document.activeElement; if (!(a && $('#main').contains(a) && /INPUT|TEXTAREA|SELECT/.test(a.tagName))) drawMain(); } }, 60); });
   document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && sheetOpen()) closeSheet(); });
-  window.addEventListener('hashchange', route);
+  window.addEventListener('popstate', onPop);
+  window.addEventListener('hashchange', route);   /* ручной ввод адреса */
+  navInit();
   document.addEventListener('touchstart', function () {}, { passive: true });   /* включает :active (эффект нажатия) на сенсорных экранах */
   if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(function () {});
   applyTheme();
