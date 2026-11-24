@@ -357,3 +357,15 @@ table.euer tr.warnr td { color: var(--warn); }
 .theme-neo .tile b { font-size: 16px; white-space: nowrap; }
 .theme-neo .tile.hi b, .theme-neo .tiles.t5 .tile.hi b { font: 700 18px/1.25 var(--body); white-space: nowrap; letter-spacing: -.01em; }
 .theme-neo .total, .theme-neo .big { font-family: var(--body); font-weight: 700; }
+
+/* нажатие: без синего прямоугольника браузера, вместо него — «вдавливание» кнопки */
+* { -webkit-tap-highlight-color: transparent; }
+button, a, label, select, input[type=checkbox] { touch-action: manipulation; }
+.btn, .qbtn, .qbtn svg, .choice, button.item, button.tile, .seg button, nav.tabs svg, .sheet-x, .lnk { transition: transform .09s ease, box-shadow .14s ease, filter .14s ease; }
+.btn:active, .choice:active, button.tile:active, .seg button:active, .sheet-x:active { transform: scale(.96); }
+.qbtn:active svg, nav.tabs a:active svg { transform: scale(.92); }
+button.item:active { transform: scale(.985); }
+.lnk:active { opacity: .6; }
+.theme-neo .btn:active, .theme-neo .choice:active, .theme-neo button.tile:active, .theme-neo .sheet-x:active, .theme-neo .seg.chips button:active, .theme-neo .card .list .item.tap:active { box-shadow: var(--in); }
+.theme-neo .qbtn:active svg, .theme-neo nav.tabs a:active svg { box-shadow: var(--in); }
+.theme-neo .btn.pri:active, .theme-neo .qbtn.cam:active svg, .theme-neo nav.tabs a[aria-current="page"]:active svg { filter: brightness(.92); box-shadow: inset 3px 3px 8px rgba(60, 30, 90, .35); }

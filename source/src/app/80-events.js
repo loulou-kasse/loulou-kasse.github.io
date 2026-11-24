@@ -127,6 +127,7 @@
   document.addEventListener('focusout', function () { setTimeout(function () { if (dirty && !sheetOpen()) { var a = document.activeElement; if (!(a && $('#main').contains(a) && /INPUT|TEXTAREA|SELECT/.test(a.tagName))) drawMain(); } }, 60); });
   document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && sheetOpen()) closeSheet(); });
   window.addEventListener('hashchange', route);
+  document.addEventListener('touchstart', function () {}, { passive: true });   /* включает :active (эффект нажатия) на сенсорных экранах */
   if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(function () {});
   applyTheme();
   boot();
