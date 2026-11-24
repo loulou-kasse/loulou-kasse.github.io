@@ -123,23 +123,27 @@
   }
   /* круглый объёмный логотип, плоские лучи и четыре кнопки быстрого доступа по диагоналям */
   var LOGO_ROUND = 'data:image/jpeg;base64,/*LOGO_ROUND*/';
-  function rays() {
-    var out = '', i, a, r1, r2;
-    for (i = 0; i < 48; i++) {
-      a = i * 7.5 * Math.PI / 180; if (i % 12 === 6) continue;          /* на диагоналях — главные лучи к кнопкам */
-      r1 = 66; r2 = i % 2 ? 118 : (i % 4 ? 132 : 146);
-      out += '<line x1="' + (180 + r1 * Math.cos(a)).toFixed(1) + '" y1="' + (180 + r1 * Math.sin(a)).toFixed(1) + '" x2="' + (180 + r2 * Math.cos(a)).toFixed(1) + '" y2="' + (180 + r2 * Math.sin(a)).toFixed(1) + '"/>';
-    }
-    var main = [45, 135, 225, 315].map(function (d) { var a2 = d * Math.PI / 180; return '<path d="M' + (180 + 70 * Math.cos(a2 - 0.05)).toFixed(1) + ' ' + (180 + 70 * Math.sin(a2 - 0.05)).toFixed(1) + ' L' + (180 + 128 * Math.cos(a2)).toFixed(1) + ' ' + (180 + 128 * Math.sin(a2)).toFixed(1) + ' L' + (180 + 70 * Math.cos(a2 + 0.05)).toFixed(1) + ' ' + (180 + 70 * Math.sin(a2 + 0.05)).toFixed(1) + 'z"/>'; }).join('');
-    return '<svg class="rays" viewBox="0 0 360 360" aria-hidden="true"><g class="thin">' + out + '</g><g class="main">' + main + '</g></svg>';
+  /* четыре дугообразные кнопки вокруг логотипа: дуга — толстая линия со скруглёнными концами */
+  var ARC = [
+    { a: -90, act: 'data-act="j-new" data-type="ausgabe" data-photo="1"', label: 'Фото чека', icon: 'cam', cls: 'cam' },
+    { a: 0, act: 'data-act="j-new" data-type="ausgabe"', label: 'Расход', icon: 'minus' },
+    { a: 90, act: 'data-act="iv-new"', label: 'Счёт', icon: 'inv' },
+    { a: 180, act: 'data-act="j-new" data-type="einnahme"', label: 'Выручка', icon: 'plus' }
+  ];
+  function arcPath(a) {
+    var r = 140, h = 23, p = function (d) { var t = d * Math.PI / 180; return (180 + r * Math.cos(t)).toFixed(1) + ' ' + (180 + r * Math.sin(t)).toFixed(1); };
+    return 'M' + p(a - h) + ' A' + r + ' ' + r + ' 0 0 1 ' + p(a + h);
   }
   function hero() {
-    return '<div class="hero">' + rays() +
-      '<div class="medal" aria-hidden="true"><div class="ring"><img src="' + LOGO_ROUND + '" alt=""></div></div>' +
-      '<button class="qbtn cam p-tl" data-act="j-new" data-type="ausgabe" data-photo="1">' + QI.cam + '<span>Фото чека</span></button>' +
-      '<button class="qbtn p-tr" data-act="iv-new">' + QI.inv + '<span>Счёт</span></button>' +
-      '<button class="qbtn p-bl" data-act="j-new" data-type="ausgabe">' + QI.minus + '<span>Расход</span></button>' +
-      '<button class="qbtn p-br" data-act="j-new" data-type="einnahme">' + QI.plus + '<span>Поступление</span></button></div>';
+    var segs = ARC.map(function (x) {
+      var t = x.a * Math.PI / 180, cx = 180 + 140 * Math.cos(t), cy = 180 + 140 * Math.sin(t) - 8;
+      var ic = QI[x.icon].replace('<svg viewBox="0 0 24 24">', '<svg x="' + (cx - 12).toFixed(1) + '" y="' + (cy - 12).toFixed(1) + '" width="24" height="24" viewBox="0 0 24 24" class="ic">');
+      return '<g class="seg' + (x.cls ? ' ' + x.cls : '') + '" ' + x.act + ' role="button" tabindex="0" aria-label="' + x.label + '"><path class="arc" d="' + arcPath(x.a) + '"/>' + ic +
+        '<text x="' + cx.toFixed(1) + '" y="' + (cy + 27).toFixed(1) + '" text-anchor="middle">' + x.label.toUpperCase() + '</text></g>';
+    }).join('');
+    return '<div class="hero"><svg class="arcs" viewBox="0 0 360 360"><defs><linearGradient id="lgrad" gradientUnits="userSpaceOnUse" x1="110" y1="0" x2="250" y2="80">' +
+      '<stop offset="0" stop-color="#1f0a08"/><stop offset=".3" stop-color="#4a2222"/><stop offset=".48" stop-color="#7a4b45"/><stop offset=".6" stop-color="#c69b7f"/><stop offset=".66" stop-color="#ead2ab"/><stop offset=".73" stop-color="#a87a68"/><stop offset=".88" stop-color="#5d3736"/><stop offset="1" stop-color="#24100d"/></linearGradient></defs>' + segs + '</svg>' +
+      '<div class="medal" aria-hidden="true"><div class="ring"><img src="' + LOGO_ROUND + '" alt=""></div></div></div>';
   }
   function vHome() {
     var t = today(), s = S.settings, open = C.openInvoices(S.invoices).sort(function (a, b) { return (a.due || '9') < (b.due || '9') ? -1 : 1; });
