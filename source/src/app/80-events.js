@@ -18,6 +18,7 @@
     else if (a === 'go-month') { month = today().slice(0, 7); jf = { q: '', kind: 'all' }; location.hash = '#journal'; }
 
     else if (a === 'theme') { setTheme(b.dataset.t); drawMain(); }
+    else if (a === 'accent') { try { localStorage.setItem('kasse-accent', b.dataset.k); } catch (e) {} applyAccent(); drawMain(); }
     else if (a === 'go-nobeleg') { jf = { q: '', kind: 'nobeleg' }; month = 'all'; closeSheet(); if (view === 'journal') drawMain(); else location.hash = '#journal'; }
     else if (a === 'go-nocat') { jf = { q: '', kind: 'nocat' }; month = 'all'; closeSheet(); if (view === 'journal') drawMain(); else location.hash = '#journal'; }
     /* счета */
@@ -121,6 +122,7 @@
       withDrive(function () { return attachBeleg(e, f).then(function () { toast('Документ сохранён в Drive: Belege › ' + e.date.slice(0, 7)); if (sheetOpen()) sheetEntryView(e.id); }); });
     }
     else if (t.id === 'eb-j') { $('#eb-jw').hidden = !t.checked; }
+    else if (t.id === 'grad-on') { try { localStorage.setItem('kasse-grad', t.checked ? '1' : '0'); } catch (e) {} applyAccent(); drawMain(); }
     else if (t.id === 'euer-y') sheetEuer(t.value);
     else if (t.id === 'pack-y') { /* выбор года читается при нажатии */ }
     else if (t.id === 'bank-file' && t.files && t.files[0]) bankFile(t.files[0]);

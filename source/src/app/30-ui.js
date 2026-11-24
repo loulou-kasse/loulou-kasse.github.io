@@ -74,7 +74,19 @@
   /* ---------- оформление (запоминается на устройстве) ---------- */
   var THEMES = [['neo', 'Объёмный'], ['floral', 'Цветочный'], ['paper', 'Мягкий'], ['boutique', 'Бутик'], ['classic', 'Строгий']];
   function theme() { try { return localStorage.getItem('kasse-theme') || 'neo'; } catch (e) { return 'neo'; } }
-  function applyTheme() { var t = theme(); document.body.className = document.body.className.replace(/\btheme-\w+/g, '').trim() + ' theme-' + t; }
+  /* цвет акцента (кнопки, карточка, активные элементы) и градиент — запоминаются на устройстве */
+  var ACCENTS = [['rose', 'Пыльная роза', '#a85d6a'], ['plum', 'Слива', '#6e3d6b'], ['lav', 'Лаванда', '#6f5fb0'], ['sea', 'Морская волна', '#2f6e7c'],
+    ['sage', 'Шалфей', '#4f7a5d'], ['terra', 'Терракота', '#a4553c'], ['choc', 'Шоколад', '#4a2a26'], ['graph', 'Графит', '#3a3946']];
+  function mixHex(h, t, k) { return '#' + [1, 3, 5].map(function (i) { var a = parseInt(h.substr(i, 2), 16), b = parseInt(t.substr(i, 2), 16); return ('0' + Math.round(a * (1 - k) + b * k).toString(16)).slice(-2); }).join(''); }
+  function accent() { var k; try { k = localStorage.getItem('kasse-accent'); } catch (e) {} return ACCENTS.find(function (a) { return a[0] === k; }) || ACCENTS[0]; }
+  function gradOn() { try { return localStorage.getItem('kasse-grad') !== '0'; } catch (e) { return true; } }
+  function applyAccent() {
+    var c = accent()[2], light = mixHex(c, '#ffffff', 0.25), dark = mixHex(c, '#000000', 0.28), st = document.body.style, g = gradOn();
+    st.setProperty('--grad', g ? 'linear-gradient(135deg, ' + light + ' 0%, ' + c + ' 50%, ' + dark + ' 100%)' : 'linear-gradient(' + c + ', ' + c + ')');
+    st.setProperty('--grad-txt', g ? 'linear-gradient(135deg, ' + c + ' 0%, ' + dark + ' 100%)' : 'linear-gradient(' + c + ', ' + c + ')');
+    st.setProperty('--accent', c); st.setProperty('--gold', mixHex(c, '#ffffff', 0.55));
+  }
+  function applyTheme() { var t = theme(); document.body.className = document.body.className.replace(/\btheme-\w+/g, '').trim() + ' theme-' + t; applyAccent(); }
   function setTheme(t) { try { localStorage.setItem('kasse-theme', t); } catch (e) {} applyTheme(); }
 
   /* ---------- вход ---------- */

@@ -294,11 +294,11 @@ table.euer tr.warnr td { color: var(--warn); }
 .theme-boutique .tile b, .theme-boutique .amt { font-weight: 400; }
 
 /* ================= «Объёмный»: мягкий рельеф (neumorphism), светло-серый фон, градиент роза → орхидея → барвинок ================= */
-.theme-neo { --paper: #e9e9ef; --card: #e9e9ef; --ink: #2a2834; --muted: #8b8999; --line: #d9d9e2; --accent: #7a4b45; --gold: #c69b7f; --r: 22px;
+.theme-neo { --paper: #e9e9ef; --card: #e9e9ef; --ink: #2a2834; --muted: #8b8999; --line: #d9d9e2; --accent: #a85d6a; --gold: #dbb6bd; --r: 22px;
   /* градиент как буквы LOU LOU в логотипе: тёмный шоколад, гранёное розовое золото и шампань-блик */
-  --grad: linear-gradient(125deg, #1f0a08 0%, #4a2222 26%, #7a4b45 42%, #c69b7f 53%, #ead2ab 58%, #a87a68 64%, #5d3736 80%, #24100d 100%);
-  /* для кнопок с текстом: блик сдвинут к правому краю, под надписью — тёмный шоколад */
-  --grad-txt: linear-gradient(110deg, #24100d 0%, #43201e 40%, #64393a 66%, #9a6c5c 82%, #e6cba4 90%, #a87a68 95%, #4a2424 100%);
+  /* цвет акцента и градиент задаются в «Ещё» → «Оформление»; здесь — значения по умолчанию (пыльная роза) */
+  --grad: linear-gradient(135deg, #be8692 0%, #a85d6a 50%, #7e4650 100%);
+  --grad-txt: linear-gradient(135deg, #a85d6a 0%, #7e4650 100%);
   --hi: -7px -7px 16px rgba(255, 255, 255, .95), 7px 7px 18px rgba(163, 163, 184, .45);
   --hi-sm: -4px -4px 10px rgba(255, 255, 255, .95), 4px 4px 11px rgba(163, 163, 184, .45);
   --in: inset 4px 4px 9px rgba(163, 163, 184, .45), inset -4px -4px 9px rgba(255, 255, 255, .9);
@@ -394,7 +394,7 @@ button.item:active { transform: scale(.985); }
 .theme-neo .btn.pri, .theme-neo .seg button[aria-selected="true"], .theme-neo .seg button[aria-pressed="true"], .theme-neo .seg.chips button[aria-pressed="true"], .theme-neo .card .tiles .tile.hi { background: var(--grad-txt); }
 
 /* ---------- главная: логотип-медальон с лучами и кнопками быстрого доступа ---------- */
-:root { --grad: linear-gradient(125deg, #1f0a08 0%, #4a2222 26%, #7a4b45 42%, #c69b7f 53%, #ead2ab 58%, #a87a68 64%, #5d3736 80%, #24100d 100%);
+:root { --grad: linear-gradient(135deg, #be8692 0%, #a85d6a 50%, #7e4650 100%); --grad-txt: linear-gradient(135deg, #a85d6a 0%, #7e4650 100%);
   --hi: 0 4px 14px rgba(90, 60, 50, .14); --hi-sm: 0 2px 8px rgba(90, 60, 50, .12); --in: inset 0 2px 6px rgba(90, 60, 50, .18); }
 
 /* ---------- главная А: банковская карточка ---------- */
@@ -406,7 +406,7 @@ button.item:active { transform: scale(.985); }
 .bc-big { font: 700 36px/1.1 var(--body); letter-spacing: -.01em; text-shadow: 0 1px 2px rgba(0, 0, 0, .25); }
 .bc-row { display: flex; gap: 18px; font-size: 13px; opacity: .92; } .bc-row b { font-weight: 600; }
 .bc-bar { height: 6px; border-radius: 999px; background: rgba(255, 255, 255, .22); overflow: hidden; margin-top: 8px; }
-.bc-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #c69b7f, #ead2ab); }
+.bc-bar i { display: block; height: 100%; border-radius: 999px; background: rgba(255, 255, 255, .88); }
 .bc-bar.over i { background: #ff8a7a; }
 .bc-sub { font-size: 12px; opacity: .85; }
 .qrow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
@@ -416,6 +416,16 @@ button.item:active { transform: scale(.985); }
 .qb:active svg { transform: scale(.92); box-shadow: var(--in); }
 .theme-classic .qb svg, .theme-boutique .qb svg { border: 1px solid var(--line); box-shadow: none; }
 
+
+/* выбор цвета акцента */
+.swatches { display: flex; flex-wrap: wrap; gap: 12px; }
+.sw { width: 44px; height: 44px; border-radius: 50%; border: 0; padding: 0; position: relative; box-shadow: var(--hi-sm); }
+.sw[aria-pressed="true"]::after { content: ''; position: absolute; inset: -5px; border-radius: 50%; border: 2px solid var(--ink); }
+.sw:active { transform: scale(.92); }
+.switch { display: flex; align-items: center; gap: 12px; font-size: 15px; }
+.switch input { appearance: none; -webkit-appearance: none; width: 48px; height: 28px; border-radius: 999px; background: var(--line); position: relative; margin: 0; transition: background .15s; box-shadow: var(--in); flex: 0 0 auto; }
+.switch input::after { content: ''; position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .25); transition: left .15s; }
+.switch input:checked { background: var(--accent); } .switch input:checked::after { left: 23px; }
 
 </style>
 </head>
@@ -1327,7 +1337,19 @@ button.item:active { transform: scale(.985); }
   /* ---------- оформление (запоминается на устройстве) ---------- */
   var THEMES = [['neo', 'Объёмный'], ['floral', 'Цветочный'], ['paper', 'Мягкий'], ['boutique', 'Бутик'], ['classic', 'Строгий']];
   function theme() { try { return localStorage.getItem('kasse-theme') || 'neo'; } catch (e) { return 'neo'; } }
-  function applyTheme() { var t = theme(); document.body.className = document.body.className.replace(/\btheme-\w+/g, '').trim() + ' theme-' + t; }
+  /* цвет акцента (кнопки, карточка, активные элементы) и градиент — запоминаются на устройстве */
+  var ACCENTS = [['rose', 'Пыльная роза', '#a85d6a'], ['plum', 'Слива', '#6e3d6b'], ['lav', 'Лаванда', '#6f5fb0'], ['sea', 'Морская волна', '#2f6e7c'],
+    ['sage', 'Шалфей', '#4f7a5d'], ['terra', 'Терракота', '#a4553c'], ['choc', 'Шоколад', '#4a2a26'], ['graph', 'Графит', '#3a3946']];
+  function mixHex(h, t, k) { return '#' + [1, 3, 5].map(function (i) { var a = parseInt(h.substr(i, 2), 16), b = parseInt(t.substr(i, 2), 16); return ('0' + Math.round(a * (1 - k) + b * k).toString(16)).slice(-2); }).join(''); }
+  function accent() { var k; try { k = localStorage.getItem('kasse-accent'); } catch (e) {} return ACCENTS.find(function (a) { return a[0] === k; }) || ACCENTS[0]; }
+  function gradOn() { try { return localStorage.getItem('kasse-grad') !== '0'; } catch (e) { return true; } }
+  function applyAccent() {
+    var c = accent()[2], light = mixHex(c, '#ffffff', 0.25), dark = mixHex(c, '#000000', 0.28), st = document.body.style, g = gradOn();
+    st.setProperty('--grad', g ? 'linear-gradient(135deg, ' + light + ' 0%, ' + c + ' 50%, ' + dark + ' 100%)' : 'linear-gradient(' + c + ', ' + c + ')');
+    st.setProperty('--grad-txt', g ? 'linear-gradient(135deg, ' + c + ' 0%, ' + dark + ' 100%)' : 'linear-gradient(' + c + ', ' + c + ')');
+    st.setProperty('--accent', c); st.setProperty('--gold', mixHex(c, '#ffffff', 0.55));
+  }
+  function applyTheme() { var t = theme(); document.body.className = document.body.className.replace(/\btheme-\w+/g, '').trim() + ' theme-' + t; applyAccent(); }
   function setTheme(t) { try { localStorage.setItem('kasse-theme', t); } catch (e) {} applyTheme(); }
 
   /* ---------- вход ---------- */
@@ -2158,7 +2180,10 @@ button.item:active { transform: scale(.985); }
     h += '<h2>Данные</h2><div class="choices">' +
       '<button class="choice" data-act="set-open"><span><b>Настройки</b><span class="sub">реквизиты, нумерация, остаток, лимиты, папки Drive</span></span></button>' +
       '<button class="choice" data-act="bk-open"><span><b>Резервная копия</b><span class="sub">' + (s.lastBackup ? 'последняя копия в Drive: ' + esc(C.deDate(s.lastBackup.slice(0, 10))) : 'файл со всеми данными; копия в Drive') + '</span></span></button></div>';
-    var th = theme(); h += '<h3>Оформление</h3><div class="seg chips">' + THEMES.map(function (x) { return '<button data-act="theme" data-t="' + x[0] + '" aria-pressed="' + (th === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div><p class="hint">Запоминается на этом устройстве.</p>';
+    var th = theme(), ac = accent()[0];
+    h += '<h3>Оформление</h3><div class="card"><p class="hint">Цвет кнопок и акцентов</p><div class="swatches">' + ACCENTS.map(function (x) { return '<button class="sw" data-act="accent" data-k="' + x[0] + '" aria-pressed="' + (ac === x[0]) + '" aria-label="' + x[1] + '" title="' + x[1] + '" style="background:' + (gradOn() ? 'linear-gradient(135deg,' + mixHex(x[2], '#ffffff', 0.25) + ',' + x[2] + ',' + mixHex(x[2], '#000000', 0.28) + ')' : x[2]) + '"></button>'; }).join('') + '</div>' +
+      '<label class="switch"><input type="checkbox" id="grad-on"' + (gradOn() ? ' checked' : '') + '><span>Градиент</span></label>' +
+      '<p class="hint">Стиль</p><div class="seg chips">' + THEMES.map(function (x) { return '<button data-act="theme" data-t="' + x[0] + '" aria-pressed="' + (th === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div><p class="hint">Запоминается на этом устройстве.</p></div>';
     if (S.user) h += '<p class="hint">Вход: ' + esc(S.user.email || '') + ' · Google Drive ' + (B.driveReady() ? 'подключён' : 'не подключён') + ' <button class="lnk" data-act="logout">Выйти</button></p>';
     return h;
   }
@@ -2393,6 +2418,7 @@ button.item:active { transform: scale(.985); }
     else if (a === 'go-month') { month = today().slice(0, 7); jf = { q: '', kind: 'all' }; location.hash = '#journal'; }
 
     else if (a === 'theme') { setTheme(b.dataset.t); drawMain(); }
+    else if (a === 'accent') { try { localStorage.setItem('kasse-accent', b.dataset.k); } catch (e) {} applyAccent(); drawMain(); }
     else if (a === 'go-nobeleg') { jf = { q: '', kind: 'nobeleg' }; month = 'all'; closeSheet(); if (view === 'journal') drawMain(); else location.hash = '#journal'; }
     else if (a === 'go-nocat') { jf = { q: '', kind: 'nocat' }; month = 'all'; closeSheet(); if (view === 'journal') drawMain(); else location.hash = '#journal'; }
     /* счета */
@@ -2496,6 +2522,7 @@ button.item:active { transform: scale(.985); }
       withDrive(function () { return attachBeleg(e, f).then(function () { toast('Документ сохранён в Drive: Belege › ' + e.date.slice(0, 7)); if (sheetOpen()) sheetEntryView(e.id); }); });
     }
     else if (t.id === 'eb-j') { $('#eb-jw').hidden = !t.checked; }
+    else if (t.id === 'grad-on') { try { localStorage.setItem('kasse-grad', t.checked ? '1' : '0'); } catch (e) {} applyAccent(); drawMain(); }
     else if (t.id === 'euer-y') sheetEuer(t.value);
     else if (t.id === 'pack-y') { /* выбор года читается при нажатии */ }
     else if (t.id === 'bank-file' && t.files && t.files[0]) bankFile(t.files[0]);

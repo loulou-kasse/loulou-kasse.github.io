@@ -279,11 +279,11 @@ table.euer tr.warnr td { color: var(--warn); }
 .theme-boutique .tile b, .theme-boutique .amt { font-weight: 400; }
 
 /* ================= «Объёмный»: мягкий рельеф (neumorphism), светло-серый фон, градиент роза → орхидея → барвинок ================= */
-.theme-neo { --paper: #e9e9ef; --card: #e9e9ef; --ink: #2a2834; --muted: #8b8999; --line: #d9d9e2; --accent: #7a4b45; --gold: #c69b7f; --r: 22px;
+.theme-neo { --paper: #e9e9ef; --card: #e9e9ef; --ink: #2a2834; --muted: #8b8999; --line: #d9d9e2; --accent: #a85d6a; --gold: #dbb6bd; --r: 22px;
   /* градиент как буквы LOU LOU в логотипе: тёмный шоколад, гранёное розовое золото и шампань-блик */
-  --grad: linear-gradient(125deg, #1f0a08 0%, #4a2222 26%, #7a4b45 42%, #c69b7f 53%, #ead2ab 58%, #a87a68 64%, #5d3736 80%, #24100d 100%);
-  /* для кнопок с текстом: блик сдвинут к правому краю, под надписью — тёмный шоколад */
-  --grad-txt: linear-gradient(110deg, #24100d 0%, #43201e 40%, #64393a 66%, #9a6c5c 82%, #e6cba4 90%, #a87a68 95%, #4a2424 100%);
+  /* цвет акцента и градиент задаются в «Ещё» → «Оформление»; здесь — значения по умолчанию (пыльная роза) */
+  --grad: linear-gradient(135deg, #be8692 0%, #a85d6a 50%, #7e4650 100%);
+  --grad-txt: linear-gradient(135deg, #a85d6a 0%, #7e4650 100%);
   --hi: -7px -7px 16px rgba(255, 255, 255, .95), 7px 7px 18px rgba(163, 163, 184, .45);
   --hi-sm: -4px -4px 10px rgba(255, 255, 255, .95), 4px 4px 11px rgba(163, 163, 184, .45);
   --in: inset 4px 4px 9px rgba(163, 163, 184, .45), inset -4px -4px 9px rgba(255, 255, 255, .9);
@@ -379,7 +379,7 @@ button.item:active { transform: scale(.985); }
 .theme-neo .btn.pri, .theme-neo .seg button[aria-selected="true"], .theme-neo .seg button[aria-pressed="true"], .theme-neo .seg.chips button[aria-pressed="true"], .theme-neo .card .tiles .tile.hi { background: var(--grad-txt); }
 
 /* ---------- главная: логотип-медальон с лучами и кнопками быстрого доступа ---------- */
-:root { --grad: linear-gradient(125deg, #1f0a08 0%, #4a2222 26%, #7a4b45 42%, #c69b7f 53%, #ead2ab 58%, #a87a68 64%, #5d3736 80%, #24100d 100%);
+:root { --grad: linear-gradient(135deg, #be8692 0%, #a85d6a 50%, #7e4650 100%); --grad-txt: linear-gradient(135deg, #a85d6a 0%, #7e4650 100%);
   --hi: 0 4px 14px rgba(90, 60, 50, .14); --hi-sm: 0 2px 8px rgba(90, 60, 50, .12); --in: inset 0 2px 6px rgba(90, 60, 50, .18); }
 
 /* ---------- главная А: банковская карточка ---------- */
@@ -391,7 +391,7 @@ button.item:active { transform: scale(.985); }
 .bc-big { font: 700 36px/1.1 var(--body); letter-spacing: -.01em; text-shadow: 0 1px 2px rgba(0, 0, 0, .25); }
 .bc-row { display: flex; gap: 18px; font-size: 13px; opacity: .92; } .bc-row b { font-weight: 600; }
 .bc-bar { height: 6px; border-radius: 999px; background: rgba(255, 255, 255, .22); overflow: hidden; margin-top: 8px; }
-.bc-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #c69b7f, #ead2ab); }
+.bc-bar i { display: block; height: 100%; border-radius: 999px; background: rgba(255, 255, 255, .88); }
 .bc-bar.over i { background: #ff8a7a; }
 .bc-sub { font-size: 12px; opacity: .85; }
 .qrow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
@@ -401,3 +401,13 @@ button.item:active { transform: scale(.985); }
 .qb:active svg { transform: scale(.92); box-shadow: var(--in); }
 .theme-classic .qb svg, .theme-boutique .qb svg { border: 1px solid var(--line); box-shadow: none; }
 
+
+/* выбор цвета акцента */
+.swatches { display: flex; flex-wrap: wrap; gap: 12px; }
+.sw { width: 44px; height: 44px; border-radius: 50%; border: 0; padding: 0; position: relative; box-shadow: var(--hi-sm); }
+.sw[aria-pressed="true"]::after { content: ''; position: absolute; inset: -5px; border-radius: 50%; border: 2px solid var(--ink); }
+.sw:active { transform: scale(.92); }
+.switch { display: flex; align-items: center; gap: 12px; font-size: 15px; }
+.switch input { appearance: none; -webkit-appearance: none; width: 48px; height: 28px; border-radius: 999px; background: var(--line); position: relative; margin: 0; transition: background .15s; box-shadow: var(--in); flex: 0 0 auto; }
+.switch input::after { content: ''; position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .25); transition: left .15s; }
+.switch input:checked { background: var(--accent); } .switch input:checked::after { left: 23px; }
